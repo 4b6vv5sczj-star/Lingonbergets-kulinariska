@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="dark">
 <title>Lingonbergets kulinariska samling</title>
 <!-- ============================================================= -->
-<!--  LINGONBERGET v1.4.0 — SJÄLVSTÄNDIG VERSION              -->
+<!--  LINGONBERGET v1.5.0 — SJÄLVSTÄNDIG VERSION              -->
 <!--  All CSS och JavaScript är inbakad i denna enda fil.          -->
 <!--  DETTA ÄR DEN NYA FILEN som ska ligga som index.html.         -->
 <!-- ============================================================= -->
@@ -262,6 +262,43 @@ a{color:var(--brand-2);text-decoration:none}
   padding:12px 18px;border-radius:12px;font-size:14px;box-shadow:var(--shadow);max-width:90vw;text-align:center;
 }
 
+/* Portionsfält i edit */
+.serv-input{width:120px;padding:11px 12px;border-radius:11px;background:var(--surface-2);
+  border:1px solid var(--line);color:var(--ink);font-size:16px}
+.serv-input:focus{outline:none;border-color:var(--brand)}
+
+/* ===== Portionsräknare (läsvy) ===== */
+.scaler{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:2px 0 16px;
+  padding:10px 12px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px}
+.scaler-lbl{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);margin-right:2px}
+.scaler-btn{width:38px;height:38px;border-radius:10px;font-size:20px;line-height:1;
+  background:var(--surface-3);border:1px solid var(--line-2);color:var(--ink)}
+.scaler-btn:active{transform:translateY(1px)}
+.scaler-val{min-width:32px;text-align:center;font-size:18px;font-weight:700}
+.scaler-reset{margin-left:auto;padding:8px 12px;border-radius:999px;font-size:13px;
+  background:transparent;border:1px solid var(--line-2);color:var(--muted)}
+.scaler-chip{padding:8px 14px;border-radius:999px;font-size:14px;font-weight:600;
+  background:var(--surface-3);border:1px solid var(--line-2);color:var(--muted)}
+.scaler-chip.is-active{background:var(--lingon);border-color:var(--lingon);color:#fff}
+
+/* ===== Enhetsomvandlare ===== */
+.conv-tabs{display:flex;gap:8px;margin:6px 0 16px}
+.conv-tab{flex:1;padding:11px 8px;border-radius:11px;font-size:14px;font-weight:600;
+  background:var(--surface-2);border:1px solid var(--line);color:var(--muted)}
+.conv-tab.is-active{background:var(--brand);border-color:var(--brand);color:#fff}
+.conv-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.conv-val{flex:1 1 90px;min-width:90px;padding:13px 12px;border-radius:12px;
+  background:var(--surface-2);border:1px solid var(--line);color:var(--ink);font-size:18px}
+.conv-val:focus{outline:none;border-color:var(--brand)}
+.conv-sel{flex:1 1 110px;padding:13px 12px;border-radius:12px;background:var(--surface-2);
+  border:1px solid var(--line);color:var(--ink);font-size:16px;-webkit-appearance:none;appearance:none}
+.conv-arrow{color:var(--faint);font-size:18px}
+.conv-result{margin:18px 0 14px;padding:16px;border-radius:14px;text-align:center;
+  background:var(--surface);border:1px solid var(--line-2);font-size:20px;font-weight:700;font-family:var(--serif)}
+.conv-ref{display:flex;flex-wrap:wrap;gap:8px}
+.conv-ref-item{font-size:12.5px;color:var(--muted);background:var(--surface-2);
+  border:1px solid var(--line);border-radius:999px;padding:6px 11px}
+
 /* ===== Crop (beskärning före OCR) ===== */
 .crop-ov{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;
   background:rgba(6,9,12,.96);padding:calc(var(--safe-top) + 10px) 10px calc(var(--safe-bottom) + 10px);
@@ -313,6 +350,7 @@ a{color:var(--brand-2);text-decoration:none}
     <button data-action="open-icloud">☁︎ Öppna recept från iCloud / Filer</button>
     <button data-action="export-all">⤓ Exportera hela samlingen (säkerhetskopia)</button>
     <button data-action="import-all">⤒ Importera samling (.json)</button>
+    <button data-action="tools">🔁 Enhetsomvandlare</button>
     <button data-action="help">？ Så funkar appen</button>
     <a class="menu-about" data-action="about">Om appen · v<span class="app-version"></span></a>
   </nav>
@@ -365,6 +403,9 @@ a{color:var(--brand-2);text-decoration:none}
         <button type="button" class="cat" data-cat="bakverk">Bakverk</button>
         <button type="button" class="cat" data-cat="vegetariskt">Vegetariskt</button>
       </div>
+
+      <label class="field-label">Portioner (valfritt — används av portionsräknaren)</label>
+      <input class="serv-input" id="recipeServings" type="number" min="1" inputmode="numeric" placeholder="t.ex. 4" autocomplete="off">
 
       <label class="field-label">Bilder</label>
       <div class="gallery" id="gallery"></div>
@@ -449,6 +490,28 @@ a{color:var(--brand-2);text-decoration:none}
 
       <div class="action-bar">
         <button class="btn btn-primary" data-action="new">Skapa ett recept</button>
+      </div>
+    </article>
+  </main>
+
+  <!-- ===== View: Tools (enhetsomvandlare) ===== -->
+  <main class="view" id="view-tools" hidden>
+    <article class="reader">
+      <h1>Enhetsomvandlare</h1>
+      <div class="conv">
+        <div class="conv-tabs" id="convTabs">
+          <button type="button" class="conv-tab is-active" data-cat="volym">Volym</button>
+          <button type="button" class="conv-tab" data-cat="vikt">Vikt</button>
+          <button type="button" class="conv-tab" data-cat="temp">Temperatur</button>
+        </div>
+        <div class="conv-row">
+          <input id="convVal" class="conv-val" type="number" inputmode="decimal" value="1">
+          <select id="convFrom" class="conv-sel"></select>
+          <span class="conv-arrow">→</span>
+          <select id="convTo" class="conv-sel"></select>
+        </div>
+        <div class="conv-result" id="convResult">—</div>
+        <div class="conv-ref" id="convRef"></div>
       </div>
     </article>
   </main>
@@ -855,6 +918,107 @@ a{color:var(--brand-2);text-decoration:none}
   }
 
   global.RecipeFormat = { structure: structure };
+})(window);
+
+</script>
+
+<!-- scaler.js -->
+<script>
+/* scaler.js — skalar mängder i ingredienstext när man ändrar antal portioner.
+   Hanterar heltal, decimaler (1,5 / 1.5), bråk (½, 1½, 1/2, 1 1/2) och intervall (2–3).
+   Formaterar tillbaka till snygga bråk där det går (0,5 → ½) och komma som decimaltecken. */
+(function (global) {
+  'use strict';
+
+  var UF = { '½': 0.5, '¼': 0.25, '¾': 0.75, '⅓': 1 / 3, '⅔': 2 / 3, '⅛': 0.125, '⅜': 0.375, '⅝': 0.625, '⅞': 0.875, '⅕': 0.2, '⅖': 0.4, '⅗': 0.6, '⅘': 0.8 };
+  var FR = [[0.125, '⅛'], [0.25, '¼'], [1 / 3, '⅓'], [0.375, '⅜'], [0.5, '½'], [0.625, '⅝'], [2 / 3, '⅔'], [0.75, '¾'], [0.875, '⅞']];
+
+  function num(s) { return parseFloat(String(s).replace(',', '.')); }
+
+  function fmt(n) {
+    if (!isFinite(n)) return '';
+    if (n < 0) return String(n);
+    var whole = Math.floor(n + 1e-9), frac = n - whole;
+    if (frac < 0.04) return String(whole);
+    var best = null, bd = 0.06;
+    for (var i = 0; i < FR.length; i++) { var d = Math.abs(frac - FR[i][0]); if (d < bd) { bd = d; best = FR[i][1]; } }
+    if (best) return (whole > 0 ? whole + ' ' : '') + best;
+    var s = (Math.round(n * 100) / 100).toFixed(2).replace(/0+$/, '').replace(/[.,]$/, '');
+    return s.replace('.', ',');
+  }
+
+  // Värdet av en kvantitets-token (ej intervall).
+  function val(token) {
+    var t = token.trim();
+    var mm = t.match(/^(\d+)\s+(\d+)\/(\d+)$/); if (mm) return (+mm[1]) + (+mm[2]) / (+mm[3]);
+    var fr = t.match(/^(\d+)\/(\d+)$/); if (fr) return (+fr[1]) / (+fr[2]);
+    var v = 0;
+    var nm = t.match(/\d+(?:[.,]\d+)?/); if (nm) v += num(nm[0]);
+    var uf = t.match(/[½¼¾⅓⅔⅛⅜⅝⅞⅕⅖⅗⅘]/); if (uf) v += UF[uf[0]] || 0;
+    return v;
+  }
+
+  var QTY = /(\d+\s+\d+\/\d+)|(\d+\/\d+)|(\d+(?:[.,]\d+)?\s*[-–]\s*\d+(?:[.,]\d+)?)|(\d+(?:[.,]\d+)?\s*[½¼¾⅓⅔⅛⅜⅝⅞⅕⅖⅗⅘])|(\d+(?:[.,]\d+)?)|([½¼¾⅓⅔⅛⅜⅝⅞⅕⅖⅗⅘])/g;
+
+  function scaleText(str, f) {
+    if (!str || !isFinite(f) || f === 1) return str;
+    return str.replace(QTY, function (m) {
+      if (/[-–]/.test(m) && !/\//.test(m)) {           // intervall, t.ex. 2–3
+        var p = m.split(/\s*[-–]\s*/);
+        return fmt(num(p[0]) * f) + '–' + fmt(num(p[1]) * f);
+      }
+      return fmt(val(m) * f);
+    });
+  }
+
+  global.Scaler = { scaleText: scaleText, format: fmt };
+})(window);
+
+</script>
+
+<!-- converter.js -->
+<script>
+/* converter.js — enhetsomvandling för matlagning: volym, vikt och temperatur.
+   Faktorer relativt en basenhet (ml respektive g). Temperatur hanteras separat. */
+(function (global) {
+  'use strict';
+
+  var V = {
+    ml: 1, cl: 10, dl: 100, l: 1000,
+    krm: 1, tsk: 5, msk: 15,
+    cup: 240, 'fl oz': 29.5735
+  };
+  var W = {
+    g: 1, hg: 100, kg: 1000,
+    oz: 28.3495, lb: 453.592
+  };
+
+  var CATS = {
+    volym: { units: V, order: ['ml', 'cl', 'dl', 'l', 'krm', 'tsk', 'msk', 'cup', 'fl oz'] },
+    vikt: { units: W, order: ['g', 'hg', 'kg', 'oz', 'lb'] }
+  };
+
+  var REF = {
+    volym: ['1 msk = 15 ml', '1 tsk = 5 ml', '1 krm = 1 ml', '1 dl = 100 ml', '1 cup ≈ 2,4 dl', '1 fl oz ≈ 3 cl'],
+    vikt: ['1 hg = 100 g', '1 kg = 1000 g', '1 oz ≈ 28 g', '1 lb ≈ 454 g'],
+    temp: ['100 °C = 212 °F', '175 °C ≈ 347 °F', '200 °C = 392 °F', '225 °C ≈ 437 °F']
+  };
+
+  function convert(cat, value, from, to) {
+    if (!isFinite(value)) return NaN;
+    if (cat === 'temp') {
+      if (from === to) return value;
+      var c = (from === '°C') ? value : (value - 32) * 5 / 9;
+      return (to === '°C') ? c : c * 9 / 5 + 32;
+    }
+    var u = CATS[cat].units;
+    if (!(from in u) || !(to in u)) return NaN;
+    return value * u[from] / u[to];
+  }
+
+  function unitsFor(cat) { return cat === 'temp' ? ['°C', '°F'] : CATS[cat].order; }
+
+  global.Converter = { CATS: CATS, REF: REF, convert: convert, unitsFor: unitsFor };
 })(window);
 
 </script>
@@ -1606,6 +1770,19 @@ a{color:var(--brand-2);text-decoration:none}
     return null;
   }
 
+  // Hitta en receptbild på sidan (för fallet då "skriv ut"-versionen saknar bild).
+  function imageFromDoc(doc) {
+    var recipe = parseJsonLd(doc);
+    if (recipe) { var im = pickImage(recipe.image); if (im) return im; }
+    var og = doc.querySelector('meta[property="og:image"]');
+    if (og && og.content) return og.content;
+    var tw = doc.querySelector('meta[name="twitter:image"],meta[property="twitter:image"]');
+    if (tw && tw.content) return tw.content;
+    var plug = parsePluginMarkup(doc);
+    if (plug && plug.image) return plug.image;
+    return null;
+  }
+
   /* ---------- Publikt API ---------- */
 
   var WebImport = {
@@ -1638,11 +1815,15 @@ a{color:var(--brand-2);text-decoration:none}
         }
 
         return pre.then(function (printRes) {
-          if (printRes) return printRes;
-          var res = parseDoc(doc);
-          if (res) return res;
-          var og = parseOG(doc);
-          if (og && og.description) return { title: og.name, html: structureToHtmlOnly(og.description), image: og.image };
+          var result = printRes || parseDoc(doc);
+          if (!result) {
+            var og = parseOG(doc);
+            if (og && og.description) result = { title: og.name, html: structureToHtmlOnly(og.description), image: og.image };
+          }
+          if (result) {
+            if (!result.image) result.image = imageFromDoc(doc);  // bild från originalsidan
+            return result;
+          }
           throw new Error('no-structured-data');
         });
       }).catch(function () {
@@ -1655,7 +1836,25 @@ a{color:var(--brand-2);text-decoration:none}
     },
 
     /** Tolka inklistrad text. Returnerar { title, html }. */
-    fromText: function (text) { return structureFull(text || ''); }
+    fromText: function (text) { return structureFull(text || ''); },
+
+    /** Hämta en bild-URL via proxy och returnera en Blob (för inbäddning). null om det misslyckas. */
+    fetchImageBlob: function (url) {
+      if (!url) return Promise.resolve(null);
+      if (/^https?:/i.test(url) === false) return Promise.resolve(null);
+      var i = 0;
+      function tryNext() {
+        if (i >= PROXIES.length) return Promise.resolve(null);
+        return fetch(PROXIES[i++](url)).then(function (r) {
+          if (!r.ok) throw new Error('status');
+          return r.blob();
+        }).then(function (b) {
+          if (b && b.size > 200 && /image\//.test(b.type || 'image/')) return b;
+          throw new Error('ej bild');
+        }).catch(function () { return tryNext(); });
+      }
+      return tryNext();
+    }
   };
 
   global.WebImport = WebImport;
@@ -1776,7 +1975,7 @@ a{color:var(--brand-2);text-decoration:none}
     vegetariskt: 'Vegetariskt'
   };
 
-  var APP_VERSION = '1.4.0';   // visas under "Om appen"
+  var APP_VERSION = '1.5.0';   // visas under "Om appen"
 
   var $ = function (id) { return document.getElementById(id); };
   var qa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
@@ -1859,9 +2058,53 @@ a{color:var(--brand-2);text-decoration:none}
     $('view-read').hidden = name !== 'read';
     $('view-edit').hidden = name !== 'edit';
     $('view-help').hidden = name !== 'help';
+    $('view-tools').hidden = name !== 'tools';
     $('backBtn').hidden = name === 'collection';
     $('fab').hidden = name !== 'collection';
     window.scrollTo(0, 0);
+  }
+
+  /* ---------- Enhetsomvandlare ---------- */
+
+  var convState = { cat: 'volym', inited: false };
+
+  function convFmt(n) {
+    if (!isFinite(n)) return '—';
+    var r = Math.abs(n) >= 100 ? Math.round(n * 10) / 10 : Math.round(n * 1000) / 1000;
+    return String(r).replace('.', ',');
+  }
+
+  function convOptions(sel, units, def) {
+    sel.innerHTML = units.map(function (u) {
+      return '<option value="' + u + '"' + (u === def ? ' selected' : '') + '>' + u + '</option>';
+    }).join('');
+  }
+
+  function convFill() {
+    var cat = convState.cat;
+    var units = Converter.unitsFor(cat);
+    var defFrom = cat === 'volym' ? 'dl' : (cat === 'vikt' ? 'hg' : '°C');
+    var defTo = cat === 'volym' ? 'ml' : (cat === 'vikt' ? 'g' : '°F');
+    convOptions($('convFrom'), units, defFrom);
+    convOptions($('convTo'), units, defTo);
+    qa('#convTabs .conv-tab').forEach(function (t) { t.classList.toggle('is-active', t.getAttribute('data-cat') === cat); });
+    $('convRef').innerHTML = (Converter.REF[cat] || []).map(function (s) {
+      return '<span class="conv-ref-item">' + escapeHtml(s) + '</span>';
+    }).join('');
+    convCompute();
+  }
+
+  function convCompute() {
+    var cat = convState.cat;
+    var v = parseFloat(($('convVal').value || '').replace(',', '.'));
+    var from = $('convFrom').value, to = $('convTo').value;
+    var r = Converter.convert(cat, v, from, to);
+    $('convResult').textContent = isFinite(r) ? (convFmt(v) + ' ' + from + ' = ' + convFmt(r) + ' ' + to) : '—';
+  }
+
+  function openTools() {
+    showView('tools');
+    if (!convState.inited) { convState.inited = true; convFill(); }
   }
 
   /* ---------- Samling (lista) ---------- */
@@ -1922,9 +2165,62 @@ a{color:var(--brand-2);text-decoration:none}
           (r.source ? ' · källa: ' + escapeHtml(r.source) : '') + '</div>' +
         (rest.length ? '<div class="gallery-strip">' + rest.map(function (s) {
           return '<img src="' + s + '" alt="">'; }).join('') + '</div>' : '') +
+        scalerHtml(r) +
         '<div class="body">' + (r.bodyHtml || '<p style="color:var(--faint)">Inget innehåll ännu.</p>') + '</div>';
       $('reader').innerHTML = html;
+      setupScaler(r);
       showView('read');
+    });
+  }
+
+  /* ---------- Portionsräknare (skalning) ---------- */
+
+  // Bygg skalningskontrollen. Stegare om portioner är satta, annars ½/1/2/3×.
+  function scalerHtml(r) {
+    if (!/<ul/i.test(r.bodyHtml || '')) return '';   // inga ingredienslistor → ingen skala
+    if (r.servings && r.servings > 0) {
+      return '<div class="scaler" data-base="' + r.servings + '">' +
+        '<span class="scaler-lbl">Portioner</span>' +
+        '<button class="scaler-btn" data-s="dec" aria-label="Färre">−</button>' +
+        '<b class="scaler-val" id="scalerVal">' + r.servings + '</b>' +
+        '<button class="scaler-btn" data-s="inc" aria-label="Fler">＋</button>' +
+        '<button class="scaler-reset" data-s="reset">Återställ</button></div>';
+    }
+    return '<div class="scaler"><span class="scaler-lbl">Skala</span>' +
+      ['0.5', '1', '2', '3'].map(function (x) {
+        return '<button class="scaler-chip' + (x === '1' ? ' is-active' : '') + '" data-f="' + x + '">' +
+          (x === '0.5' ? '½' : x) + '×</button>';
+      }).join('') + '</div>';
+  }
+
+  function applyScale(f) {
+    qa('#reader .body ul li').forEach(function (li) {
+      var o = li.getAttribute('data-orig');
+      if (o == null) { o = li.textContent; li.setAttribute('data-orig', o); }
+      li.textContent = (f === 1 || !global.Scaler) ? o : Scaler.scaleText(o, f);
+    });
+  }
+
+  function setupScaler(r) {
+    qa('#reader .body ul li').forEach(function (li) { li.setAttribute('data-orig', li.textContent); });
+    var sc = $('reader').querySelector('.scaler');
+    if (!sc) return;
+    var base = parseFloat(sc.getAttribute('data-base')) || 0;
+    var n = base;
+    sc.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      if (b.hasAttribute('data-f')) {
+        var f = parseFloat(b.getAttribute('data-f'));
+        qa('.scaler-chip', sc).forEach(function (x) { x.classList.toggle('is-active', x === b); });
+        applyScale(f);
+      } else {
+        var s = b.getAttribute('data-s');
+        if (s === 'inc') n = n + 1;
+        else if (s === 'dec') n = Math.max(1, n - 1);
+        else if (s === 'reset') n = base;
+        if ($('scalerVal')) $('scalerVal').textContent = n;
+        applyScale(base ? n / base : 1);
+      }
     });
   }
 
@@ -1938,6 +2234,7 @@ a{color:var(--brand-2);text-decoration:none}
     state.isNew = !(recipe && recipe.id);   // nytt recept om inget id finns
 
     $('recipeTitle').value = r.title || '';
+    if ($('recipeServings')) $('recipeServings').value = r.servings ? r.servings : '';
     Editor.setHtml(r.bodyHtml || '');
     renderCatPicker();
     renderGallery();
@@ -1980,6 +2277,8 @@ a{color:var(--brand-2);text-decoration:none}
     r.category = state.category;
     r.images = state.images.slice();
     r.bodyHtml = Editor.getHtml();
+    var sv = $('recipeServings') ? parseInt($('recipeServings').value, 10) : NaN;
+    r.servings = (sv && sv > 0) ? sv : null;
     return r;
   }
 
@@ -2139,9 +2438,16 @@ a{color:var(--brand-2);text-decoration:none}
     WebImport.fromUrl(url).then(function (res) {
       clearBusy();
       if (!$('recipeTitle').value.trim() && res.title) $('recipeTitle').value = res.title;
-      if (res.image) { state.images.push(res.image); renderGallery(); }
       if (res.html) { Editor.appendHtml(res.html); toast('Recept importerat — granska i editorn.'); }
       else toast('Hittade inget recept på sidan. Prova "Klistra in recept" istället.');
+      // Bädda in receptbilden i receptet (sparas lokalt → funkar offline).
+      if (res.image) {
+        WebImport.fetchImageBlob(res.image).then(function (blob) {
+          return blob ? fileToImage(blob, 1600) : null;
+        }).then(function (dataUrl) {
+          state.images.push(dataUrl || res.image); renderGallery();
+        }).catch(function () { state.images.push(res.image); renderGallery(); });
+      }
     }).catch(function () {
       clearBusy();
       toast('Kunde inte hämta länken (sajten kan blockera). Prova "Klistra in recept".');
@@ -2233,6 +2539,7 @@ a{color:var(--brand-2);text-decoration:none}
       case 'import-all': closeMenu(); $('fileCollection').click(); break;
       case 'help': closeMenu(); showHelp(); break;
       case 'about': closeMenu(); showHelp('about'); break;
+      case 'tools': closeMenu(); openTools(); break;
     }
   }
 
@@ -2285,6 +2592,15 @@ a{color:var(--brand-2);text-decoration:none}
       var b = e.target.closest('[data-rm]'); if (!b) return;
       state.images.splice(parseInt(b.getAttribute('data-rm'), 10), 1); renderGallery();
     });
+
+    // Enhetsomvandlare
+    $('convTabs').addEventListener('click', function (e) {
+      var t = e.target.closest('.conv-tab'); if (!t) return;
+      convState.cat = t.getAttribute('data-cat'); convFill();
+    });
+    $('convVal').addEventListener('input', convCompute);
+    $('convFrom').addEventListener('change', convCompute);
+    $('convTo').addEventListener('change', convCompute);
 
     // Filinmatningar
     $('filePhoto').addEventListener('change', function (e) {
