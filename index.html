@@ -47,7 +47,8 @@
     <button data-action="open-icloud">☁︎ Öppna recept från iCloud / Filer</button>
     <button data-action="export-all">⤓ Exportera hela samlingen (säkerhetskopia)</button>
     <button data-action="import-all">⤒ Importera samling (.json)</button>
-    <a class="menu-about" data-action="about">Om appen</a>
+    <button data-action="help">？ Så funkar appen</button>
+    <a class="menu-about" data-action="about">Om appen · v<span class="app-version"></span></a>
   </nav>
 
   <!-- ===== View: Collection ===== -->
@@ -138,6 +139,54 @@
     </form>
   </main>
 
+  <!-- ===== View: Help / About ===== -->
+  <main class="view" id="view-help" hidden>
+    <article class="reader help">
+      <h1>Så funkar appen</h1>
+      <p class="lead">Lingonberget är din egna receptsamling. Du kan skriva in recept för hand, fotografera handskrivna recept, importera PDF:er och hämta recept från webben — allt sparas på din enhet.</p>
+
+      <div class="body">
+        <h2>Skapa & redigera recept</h2>
+        <p>Tryck på <strong>＋</strong> (eller "Nytt recept" i menyn) för att skapa ett recept. Ge det ett namn, välj kategori och skriv ingredienser och tillagning i texteditorn. Verktygsfältet ger rubriker, fet/kursiv text, punkt- och nummerlistor.</p>
+
+        <h2>Fota & skanna recept (OCR)</h2>
+        <p>Tryck på <strong>Skanna recept (OCR)</strong> för att fotografera eller välja en bild på ett recept. Texten läses av och struktureras automatiskt till ingredienser och steg. Du kan <strong>välja eller fota flera sidor på en gång</strong> — alla bilder läggs i galleriet och texten sätts ihop i ordning. Granska och rätta alltid resultatet, särskilt vid handstil.</p>
+
+        <h2>Importera PDF</h2>
+        <p>Tryck på <strong>Importera PDF</strong> och välj en fil från Filer, iCloud Drive eller OneDrive. Texten plockas ut rad för rad och struktureras, och förstasidan sparas som bild.</p>
+
+        <h2>Importera från webben — köket.se & Pinterest</h2>
+        <p>Tryck på <strong>Importera från länk</strong> och klistra in en receptadress. Från köket.se och liknande sajter hämtas titel, ingredienser, steg och bild automatiskt. En <strong>Pinterest-pin</strong> pekar oftast vidare till en källsajt — appen följer den länken och hämtar det riktiga receptet därifrån. Blockerar sajten hämtningen, använd "Klistra in recept".</p>
+
+        <h2>Klistra in text</h2>
+        <p>Tryck på <strong>Klistra in recept</strong> och klistra in valfri recepttext. Den tolkas och struktureras direkt — fungerar alltid, även utan internet.</p>
+
+        <h2>Bilder till receptet</h2>
+        <p>Lägg till foton med <strong>Bild / kamera</strong>. Första bilden blir omslag i listan och längst upp i receptet. När du skriver in ett nytt recept för hand påminner appen dig om att lägga till en bild av rätten.</p>
+
+        <h2>Spara till iCloud / Filer</h2>
+        <p>Med <strong>Spara till iCloud</strong> sparas ett recept som en fil du kan lägga i iCloud Drive eller Filer. Öppna sparade recept igen via menyns "Öppna recept från iCloud / Filer".</p>
+
+        <h2>Säkerhetskopiera hela samlingen</h2>
+        <p>Via menyn kan du <strong>exportera hela samlingen</strong> till en säkerhetskopia (.json) och <strong>importera</strong> den igen — bra vid byte av enhet.</p>
+
+        <h2>Lägg till på hemskärmen</h2>
+        <p>Öppna sidan i Safari, tryck på <strong>Dela</strong> → <strong>Lägg till på hemskärmen</strong>. Då körs appen i helskärm och fungerar även offline (recepten finns kvar på enheten).</p>
+
+        <hr class="rule" id="aboutSection">
+
+        <h2>Om appen</h2>
+        <p>Lingonbergets kulinariska samling — en fristående, privat receptapp. Dina recept sparas lokalt på enheten och lämnar den bara när du själv sparar till iCloud eller exporterar en kopia.</p>
+        <p class="meta">Version <span class="app-version"></span></p>
+        <p class="meta">Textigenkänning med Tesseract.js · PDF-läsning med pdf.js · webbhämtning via öppna läs-tjänster.</p>
+      </div>
+
+      <div class="action-bar">
+        <button class="btn btn-primary" data-action="new">Skapa ett recept</button>
+      </div>
+    </article>
+  </main>
+
   <!-- ===== Floating add button (collection) ===== -->
   <button class="fab" id="fab" data-action="new" aria-label="Nytt recept">＋</button>
 
@@ -161,6 +210,7 @@
 <!-- App scripts (classic order, no bundler) -->
 <script src="store.js"></script>
 <script src="editor.js"></script>
+<script src="recipeformat.js"></script>
 <script src="ocr.js"></script>
 <script src="pdfimport.js"></script>
 <script src="webimport.js"></script>
