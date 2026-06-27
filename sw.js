@@ -1,12 +1,13 @@
 /* sw.js — service worker: cachar app-skalet så appen startar offline.
    OCR-/PDF-biblioteken laddas från CDN och cachas av webbläsaren efter första användningen. */
-var CACHE = 'lingonberget-v2';
+var CACHE = 'lingonberget-v3';
 var SHELL = [
   './',
   './index.html',
   './app.css',
   './store.js',
   './editor.js',
+  './recipeformat.js',
   './ocr.js',
   './pdfimport.js',
   './webimport.js',
