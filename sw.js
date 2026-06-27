@@ -1,6 +1,10 @@
-/* sw.js — service worker: cachar app-skalet så appen startar offline.
-   OCR-/PDF-biblioteken laddas från CDN och cachas av webbläsaren efter första användningen. */
-var CACHE = 'lingonberget-v3';
+/* sw.js — service worker.
+   Strategi: "stale-while-revalidate" för appens egna filer — appen startar direkt
+   från cache (även offline), men varje fil hämtas samtidigt på nytt i bakgrunden
+   och uppdateras inför nästa öppning. Då uppdaterar appen sig själv automatiskt,
+   utan att man behöver ta bort och lägga till den på hemskärmen.
+   OCR-/PDF-biblioteken laddas från CDN och går direkt till nätet. */
+var CACHE = 'lingonberget-v4';
 var SHELL = [
   './',
   './index.html',
@@ -43,16 +47,21 @@ self.addEventListener('fetch', function (e) {
   if (url.origin !== self.location.origin) return;
 
   e.respondWith(
-    caches.match(req).then(function (cached) {
-      if (cached) return cached;
-      return fetch(req).then(function (res) {
-        if (res && res.status === 200 && res.type === 'basic') {
-          var copy = res.clone();
-          caches.open(CACHE).then(function (c) { c.put(req, copy); });
-        }
-        return res;
-      }).catch(function () {
-        if (req.mode === 'navigate') return caches.match('./index.html');
+    caches.open(CACHE).then(function (cache) {
+      return cache.match(req).then(function (cached) {
+        // Hämta alltid en färsk kopia i bakgrunden och uppdatera cachen.
+        var network = fetch(req).then(function (res) {
+          if (res && res.status === 200 && res.type === 'basic') {
+            cache.put(req, res.clone());
+          }
+          return res;
+        }).catch(function () {
+          // Offline: fall tillbaka på cache (och index.html för sidnavigering).
+          return cached || (req.mode === 'navigate' ? cache.match('./index.html') : undefined);
+        });
+
+        // Visa cache direkt om den finns, annars vänta på nätet.
+        return cached || network;
       });
     })
   );
