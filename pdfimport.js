@@ -1,7 +1,9 @@
 /* pdfimport.js — importera PDF-recept (från OneDrive, Filer/iCloud eller annan media).
    Använder pdf.js (Apache-2.0), laddas från CDN vid behov. Extraherar text och
-   renderar förstasidan som miniatyrbild. PDF väljs via systemets filväljare,
-   som på iOS inkluderar OneDrive och iCloud Drive. */
+   renderar förstasidan som miniatyrbild. Texten återskapas rad för rad utifrån
+   varje textbits position på sidan, så att receptets upplägg (rubriker, ingrediens-
+   rader, steg) bevaras inför struktureringen. PDF väljs via systemets filväljare,
+   som på iOS inkluderar OneDrive och iCloud Drive. /
 (function (global) {
   'use strict';
 
@@ -36,10 +38,30 @@
     });
   }
 
+  // Återskapa rader ur pdf.js textinnehåll genom att gruppera bitar efter y-position.
+  function itemsToLines(items) {
+    var rows = [];
+    items.forEach(function (it) {
+      if (!it.str || !it.str.replace(/\s/g, '')) return;
+      var y = it.transform[5], x = it.transform[4];
+      var row = null;
+      for (var k = 0; k < rows.length; k++) {
+        if (Math.abs(rows[k].y - y) <= 3) { row = rows[k]; break; }
+      }
+      if (!row) { row = { y: y, parts: [] }; rows.push(row); }
+      row.parts.push({ x: x, s: it.str });
+    });
+    rows.sort(function (a, b) { return b.y - a.y; });           // uppifrån och ner
+    return rows.map(function (r) {
+      r.parts.sort(function (a, b) { return a.x - b.x; });      // vänster till höger
+      return r.parts.map(function (p) { return p.s; }).join(' ').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+    }).filter(function (l) { return l.length > 0; });
+  }
+
   var PDFImport = {
-    /** Returnerar { text, thumbnail(dataURL|null), title } */
+    /* Returnerar { text, thumbnail(dataURL|null), title } */
     extract: function (file, onProgress) {
-      var fileName = (file && file.name ? file.name.replace(/\.pdf$/i, '') : '').trim();
+      var fileName = (file && file.name ? file.name.replace(/.pdf$/i, '') : '').trim();
       return ensure().then(function () {
         return readArrayBuffer(file);
       }).then(function (buf) {
@@ -49,15 +71,15 @@
         var chain = Promise.resolve('');
         var thumb = null;
 
-        // Text från alla sidor (upp till 20)
+        // Text från alla sidor (upp till 20), radvis återskapad
         for (var i = 1; i <= maxPages; i++) {
           (function (pageNum) {
             chain = chain.then(function (acc) {
               return pdf.getPage(pageNum).then(function (page) {
                 return page.getTextContent().then(function (tc) {
                   if (onProgress) onProgress(pageNum / maxPages);
-                  var line = tc.items.map(function (it) { return it.str; }).join(' ');
-                  return acc + line + '\n\n';
+                  var lines = itemsToLines(tc.items);
+                  return acc + lines.join('\n') + '\n\n';
                 });
               });
             });
@@ -79,7 +101,7 @@
         }).catch(function () { thumb = null; });
 
         return Promise.all([chain, thumbP]).then(function (out) {
-          return { text: (out[0] || '').trim(), thumbnail: thumb, title: fileName };
+          return { text: (out[0] || '').replace(/^\s+|\s+$/g, ''), thumbnail: thumb, title: fileName };
         });
       });
     }
