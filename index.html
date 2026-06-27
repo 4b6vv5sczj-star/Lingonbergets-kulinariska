@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="dark">
 <title>Lingonbergets kulinariska samling</title>
 <!-- ============================================================= -->
-<!--  LINGONBERGET v1.5.0 — SJÄLVSTÄNDIG VERSION              -->
+<!--  LINGONBERGET v1.8.0 — SJÄLVSTÄNDIG VERSION              -->
 <!--  All CSS och JavaScript är inbakad i denna enda fil.          -->
 <!--  DETTA ÄR DEN NYA FILEN som ska ligga som index.html.         -->
 <!-- ============================================================= -->
@@ -299,6 +299,53 @@ a{color:var(--brand-2);text-decoration:none}
 .conv-ref-item{font-size:12.5px;color:var(--muted);background:var(--surface-2);
   border:1px solid var(--line);border-radius:999px;padding:6px 11px}
 
+/* ===== Bottenark (vinförslag) ===== */
+.sheet-ov{position:fixed;inset:0;z-index:75;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
+.sheet-card{width:100%;max-width:560px;max-height:86vh;overflow-y:auto;background:var(--surface);
+  border:1px solid var(--line-2);border-radius:18px 18px 0 0;padding:18px 16px calc(18px + var(--safe-bottom));
+  box-shadow:var(--shadow)}
+.wine-head h2{margin:2px 0 4px;font-family:var(--serif);font-size:21px}
+.wine-head p{margin:0 0 12px;color:var(--muted);font-size:13.5px}
+.wine-empty{color:var(--faint);text-align:center;padding:20px}
+.wine-list{display:flex;flex-direction:column;gap:9px}
+.wine-item{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;
+  padding:11px 12px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line)}
+.wine-main{min-width:0;display:flex;flex-direction:column;gap:2px}
+.wine-main strong{font-size:14.5px}
+.wine-grapes{font-size:12px;color:var(--brand-2)}
+.wine-meta{font-size:12px;color:var(--faint)}
+.wine-side{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.wine-price{font-weight:700;font-size:14.5px}
+.wine-link{font-size:12px}
+.wine-add{font-size:12px;padding:5px 9px;border-radius:999px;background:var(--surface-3);
+  border:1px solid var(--line-2);color:var(--ink)}
+.wine-foot{display:flex;gap:10px;margin-top:14px}
+.wine-foot .btn{flex:1}
+
+/* ===== Inköpslista ===== */
+.shop-add-row{display:flex;gap:8px;margin:6px 0 10px}
+.shop-input{flex:1;padding:13px 12px;border-radius:12px;background:var(--surface-2);
+  border:1px solid var(--line);color:var(--ink);font-size:16px}
+.shop-input:focus{outline:none;border-color:var(--brand)}
+.shop-add-row .btn{flex:0 0 auto}
+.shop-tools{display:flex;gap:8px;margin-bottom:12px}
+.shop-tool{padding:8px 12px;border-radius:999px;font-size:13px;background:transparent;
+  border:1px solid var(--line-2);color:var(--muted)}
+.shop-empty{color:var(--faint);text-align:center;padding:28px 16px}
+.shop-list{display:flex;flex-direction:column;gap:8px}
+.shop-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;
+  background:var(--surface);border:1px solid var(--line)}
+.shop-item.done{opacity:.55}
+.shop-item.done .shop-text{text-decoration:line-through;color:var(--muted)}
+.shop-check{width:28px;height:28px;flex:0 0 auto;border-radius:8px;font-size:15px;line-height:1;
+  background:var(--surface-2);border:1px solid var(--line-2);color:var(--good)}
+.shop-item.done .shop-check{background:var(--good);border-color:var(--good);color:#fff}
+.shop-text{flex:1;font-size:15px;min-width:0}
+.shop-src{font-size:11px;color:var(--faint);background:var(--surface-2);border:1px solid var(--line);
+  border-radius:999px;padding:3px 8px;white-space:nowrap;max-width:40%;overflow:hidden;text-overflow:ellipsis}
+.shop-rm{width:28px;height:28px;flex:0 0 auto;border-radius:50%;font-size:16px;line-height:1;
+  background:transparent;border:0;color:var(--faint)}
+
 /* ===== Crop (beskärning före OCR) ===== */
 .crop-ov{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;
   background:rgba(6,9,12,.96);padding:calc(var(--safe-top) + 10px) 10px calc(var(--safe-bottom) + 10px);
@@ -350,7 +397,9 @@ a{color:var(--brand-2);text-decoration:none}
     <button data-action="open-icloud">☁︎ Öppna recept från iCloud / Filer</button>
     <button data-action="export-all">⤓ Exportera hela samlingen (säkerhetskopia)</button>
     <button data-action="import-all">⤒ Importera samling (.json)</button>
+    <button data-action="shop">🛒 Inköpslista</button>
     <button data-action="tools">🔁 Enhetsomvandlare</button>
+    <button data-action="wine-update">🍷 Uppdatera vinsortiment</button>
     <button data-action="help">？ Så funkar appen</button>
     <a class="menu-about" data-action="about">Om appen · v<span class="app-version"></span></a>
   </nav>
@@ -385,6 +434,8 @@ a{color:var(--brand-2);text-decoration:none}
   <main class="view" id="view-read" hidden>
     <article class="reader" id="reader"></article>
     <div class="action-bar">
+      <button class="btn" data-action="suggest-wine">🍷 Föreslå vin</button>
+      <button class="btn" data-action="add-shop">🛒 Inköpslista</button>
       <button class="btn" data-action="save-icloud-read">☁︎ Spara till iCloud</button>
       <button class="btn btn-primary" data-action="edit">Redigera</button>
     </div>
@@ -415,6 +466,7 @@ a{color:var(--brand-2);text-decoration:none}
         <button type="button" class="pill" data-action="import-pdf">▤ Importera PDF</button>
         <button type="button" class="pill" data-action="import-url">⤓ Importera från länk</button>
         <button type="button" class="pill" data-action="paste">⎘ Klistra in recept</button>
+        <button type="button" class="pill" data-action="translate">⇄ Översätt → svenska</button>
       </div>
 
       <label class="field-label">Recept</label>
@@ -516,6 +568,22 @@ a{color:var(--brand-2);text-decoration:none}
     </article>
   </main>
 
+  <!-- ===== View: Shopping list ===== -->
+  <main class="view" id="view-shop" hidden>
+    <article class="reader">
+      <h1>Inköpslista</h1>
+      <div class="shop-add-row">
+        <input id="shopInput" class="shop-input" type="text" placeholder="Lägg till vara…" autocomplete="off">
+        <button class="btn btn-primary" data-action="shop-add">Lägg till</button>
+      </div>
+      <div class="shop-tools">
+        <button class="shop-tool" data-action="shop-clear-done">Rensa bockade</button>
+        <button class="shop-tool" data-action="shop-clear-all">Töm listan</button>
+      </div>
+      <div id="shopList" class="shop-list"></div>
+    </article>
+  </main>
+
   <!-- ===== Floating add button (collection) ===== -->
   <button class="fab" id="fab" data-action="new" aria-label="Nytt recept">＋</button>
 
@@ -562,9 +630,11 @@ a{color:var(--brand-2);text-decoration:none}
   'use strict';
 
   var DB_NAME = 'lingonberget';
-  var DB_VERSION = 1;
+  var DB_VERSION = 2;
   var STORE = 'recipes';
+  var KV = 'kv';                 // nyckel/värde-lager (t.ex. cachat vinsortiment)
   var SETTINGS_KEY = 'lb_settings';
+  var SHOPPING_KEY = 'lb_shopping';
 
   var _dbPromise = null;
 
@@ -579,6 +649,9 @@ a{color:var(--brand-2);text-decoration:none}
           var os = db.createObjectStore(STORE, { keyPath: 'id' });
           os.createIndex('updatedAt', 'updatedAt', { unique: false });
           os.createIndex('category', 'category', { unique: false });
+        }
+        if (!db.objectStoreNames.contains(KV)) {
+          db.createObjectStore(KV, { keyPath: 'k' });
         }
       };
       req.onsuccess = function () { resolve(req.result); };
@@ -670,6 +743,27 @@ a{color:var(--brand-2);text-decoration:none}
     setSetting: function (key, val) {
       var s = this.getSettings(); s[key] = val;
       try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); } catch (e) {}
+    },
+
+    /* Inköpslista i localStorage */
+    getShopping: function () {
+      try { return JSON.parse(localStorage.getItem(SHOPPING_KEY)) || []; }
+      catch (e) { return []; }
+    },
+    setShopping: function (list) {
+      try { localStorage.setItem(SHOPPING_KEY, JSON.stringify(list || [])); } catch (e) {}
+    },
+
+    /* Nyckel/värde-lager i IndexedDB (för större data, t.ex. cachat vinsortiment) */
+    kvGet: function (key) {
+      return openDB().then(function (db) {
+        return asPromise(db.transaction(KV, 'readonly').objectStore(KV).get(key));
+      }).then(function (rec) { return rec ? rec.v : null; });
+    },
+    kvSet: function (key, value) {
+      return openDB().then(function (db) {
+        return asPromise(db.transaction(KV, 'readwrite').objectStore(KV).put({ k: key, v: value }));
+      });
     }
   };
 
@@ -793,10 +887,10 @@ a{color:var(--brand-2);text-decoration:none}
   var RE_STEP_NUM = /^\s*(\d{1,2})[.)]\s+/;            // "1. " eller "2) "
   var RE_BULLET   = /^\s*[-–•*▪·]\s+/;                  // punktlista-prick
 
-  // Huvud-/delrubriker för ingredienser
-  var RE_ING_HEADER = /^\s*(ingredienser|du beh[öo]ver|det h[äa]r beh[öo]ver du|tillbeh[öo]r|s[åa]s|dressing|topping|fyllning|garnering|deg|botten|kr[äa]m|marinad|r[öo]ra|smet|s[åa]ser)\s*:?\s*$/i;
-  // Rubriker för tillagning
-  var RE_METHOD_HEADER = /^\s*(g[öo]r s[åa] h[äa]r|s[åa] h[äa]r g[öo]r du|s[åa] g[öo]r du|instruktioner|tillagning|tillv[äa]gag[åa]ngss[äa]tt|method|instructions|steg)\s*:?\s*$/i;
+  // Huvud-/delrubriker för ingredienser (sv, en, no, da, de, fi, fr, it, es, nl)
+  var RE_ING_HEADER = /^\s*(ingredienser|ingredients|zutaten|ingr[ée]dients|ingredienti|ingredientes|ingredi[eë]nten|ainekset|ainesosat|du beh[öo]ver|det h[äa]r beh[öo]ver du|du trenger|du skal bruge|you'?ll need|you will need|tarvitset|tillbeh[öo]r|s[åa]s|sauce|so[ßs]e|salsa|dressing|topping|fyllning|filling|f[üu]llung|garnering|deg|dough|teig|botten|base|kr[äa]m|marinad|marinade|r[öo]ra|smet|s[åa]ser)\s*:?\s*$/i;
+  // Rubriker för tillagning (sv, en, no, da, de, fi, fr, it, es, nl)
+  var RE_METHOD_HEADER = /^\s*(g[öo]r s[åa] h[äa]r|s[åa] h[äa]r g[öo]r du|s[åa] g[öo]r du|slik g[jø]r du|s[åa]dan g[øo]r du|fremgangsm[åa]te|fremgangsm[åa]de|instruktioner|instruksjoner|tillagning|tilberedning|tillv[äa]gag[åa]ngss[äa]tt|zubereitung|anleitung|method|instructions|directions|preparation|pr[ée]paration|preparazione|procedimento|preparaci[óo]n|elaboraci[óo]n|instrucciones|bereiding|valmistus|ohjeet|n[äa]in teet|steg|steps|how to make|to make)\s*:?\s*$/i;
   // Generisk kort rad som slutar med kolon → delrubrik
   var RE_GENERIC_HEADER = /^[^.!?,]{2,40}:\s*$/;
   // Portionsangivelse
@@ -864,7 +958,7 @@ a{color:var(--brand-2);text-decoration:none}
       var mIng = line.match(RE_ING_HEADER);
       if (mIng) {
         var w = mIng[1].toLowerCase();
-        if (/ingredienser|beh[öo]ver/.test(w)) { mode = 'ing'; newGroup(null); }
+        if (/ingredienser|ingredients|zutaten|ingr[ée]dients|ingredienti|ingredientes|ingredi[eë]nten|ainekset|ainesosat|beh[öo]ver|trenger|bruge|you|tarvitset/.test(w)) { mode = 'ing'; newGroup(null); }
         else { mode = 'ing'; newGroup(cap(stripColon(line))); }
         continue;
       }
@@ -1019,6 +1113,387 @@ a{color:var(--brand-2);text-decoration:none}
   function unitsFor(cat) { return cat === 'temp' ? ['°C', '°F'] : CATS[cat].order; }
 
   global.Converter = { CATS: CATS, REF: REF, convert: convert, unitsFor: unitsFor };
+})(window);
+
+</script>
+
+<!-- translate.js -->
+<script>
+/* translate.js — maskinöversättning av recepttext (t.ex. till svenska).
+   Använder Googles öppna gtx-slutpunkt via en CORS-vänlig proxy. Auto-detekterar
+   källspråk. Översätter text NODE för node i en HTML-bit så att struktur (rubriker,
+   listor) bevaras. Kräver internet. Resultatet är maskinöversatt — granska alltid. */
+(function (global) {
+  'use strict';
+
+  var PROXIES = [
+    function (u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
+    function (u) { return 'https://corsproxy.io/?url=' + encodeURIComponent(u); },
+    function (u) { return 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(u); }
+  ];
+
+  function fetchText(url) {
+    var i = 0;
+    function tryNext() {
+      if (i >= PROXIES.length) return Promise.reject(new Error('proxy'));
+      return fetch(PROXIES[i++](url)).then(function (r) {
+        if (!r.ok) throw new Error('status');
+        return r.text();
+      }).catch(function () { return tryNext(); });
+    }
+    return tryNext();
+  }
+
+  // Översätt EN textbit via gtx. Returnerar översatt sträng (eller originalet vid fel).
+  function gtx(text, target) {
+    if (!text || !text.trim()) return Promise.resolve(text);
+    var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=' +
+      encodeURIComponent(target) + '&dt=t&q=' + encodeURIComponent(text);
+    return fetchText(url).then(function (txt) {
+      var data = JSON.parse(txt);
+      var out = '';
+      (data[0] || []).forEach(function (seg) { if (seg && seg[0]) out += seg[0]; });
+      return out || text;
+    }).catch(function () { return text; });
+  }
+
+  // Kör fn över items med begränsad samtidighet.
+  function mapPool(items, fn, limit) {
+    return new Promise(function (resolve) {
+      if (!items.length) { resolve([]); return; }
+      var idx = 0, active = 0, done = 0, results = new Array(items.length);
+      function next() {
+        while (active < limit && idx < items.length) {
+          (function (i) {
+            active++;
+            fn(items[i]).then(function (r) { results[i] = r; }, function () { results[i] = items[i]; })
+              .then(function () { active--; done++; if (done === items.length) resolve(results); else next(); });
+          })(idx++);
+        }
+      }
+      next();
+    });
+  }
+
+  var Translate = {
+    /** Översätt en sträng. */
+    text: function (str, target) { return gtx(str, target || 'sv'); },
+
+    /** Översätt all text i en HTML-bit, behåll taggar/struktur. Returnerar ny HTML. */
+    html: function (html, target) {
+      target = target || 'sv';
+      var doc = new DOMParser().parseFromString('<div id="lbroot">' + (html || '') + '</div>', 'text/html');
+      var root = doc.getElementById('lbroot');
+      if (!root) return Promise.resolve(html);
+
+      var nodes = [];
+      (function walk(n) {
+        for (var i = 0; i < n.childNodes.length; i++) {
+          var c = n.childNodes[i];
+          if (c.nodeType === 3) { if (c.nodeValue && c.nodeValue.trim()) nodes.push(c); }
+          else if (c.nodeType === 1) { walk(c); }
+        }
+      })(root);
+
+      if (!nodes.length) return Promise.resolve(html);
+      if (nodes.length > 80) nodes = nodes.slice(0, 80);   // skälig gräns
+
+      return mapPool(nodes.map(function (n) { return n.nodeValue; }), function (t) {
+        return gtx(t, target);
+      }, 5).then(function (tr) {
+        for (var i = 0; i < nodes.length; i++) { if (tr[i] != null) nodes[i].nodeValue = tr[i]; }
+        return root.innerHTML;
+      });
+    }
+  };
+
+  global.Translate = Translate;
+})(window);
+
+</script>
+
+<!-- winepair.js -->
+<script>
+/* winepair.js — föreslår vinstil utifrån ett recept och rankar viner ur Alkos sortiment.
+   Parningen bygger på klassiska regler + nyckelord i receptets titel/ingredienser.
+   Vindata förväntas vara objekt: { id, name, producer, type, country, vintage, abv, price, size }
+   där "type" är Alkos typsträng (t.ex. "punaviinit", "valkoviinit", "roseeviinit",
+   "kuohuviinit & samppanjat", "jälkiruoka..."). Matchning sker på delsträngar. */
+(function (global) {
+  'use strict';
+
+  function has(text, words) {
+    for (var i = 0; i < words.length; i++) { if (text.indexOf(words[i]) !== -1) return true; }
+    return false;
+  }
+
+  // Regler i prioritetsordning. typeKeys = delsträngar som matchar Alkos "type".
+  var RULES = [
+    { key: 'efterratt_choklad', cat: ['efterratt', 'bakverk'], words: ['choklad', 'chocolate', 'kaka', 'brownie', 'mousse', 'tryffel'],
+      label: 'Sött/fylligt till choklad', typeKeys: ['jälkiruoka', 'väkev', 'puna'],
+      prefer: ['port', 'banyuls', 'amarone', 'recioto', 'pedro xim', 'maury'],
+      reason: 'Till chokladdessert passar ett sött, fylligt vin (portvin eller kraftigt sött rött).' },
+    { key: 'efterratt', cat: ['efterratt', 'bakverk'], words: ['glass', 'paj', 'frukt', 'bär', 'cheesecake', 'pannacotta', 'kräm', 'sött'],
+      label: 'Dessert/mousserande', typeKeys: ['jälkiruoka', 'kuohu', 'samppanja'],
+      prefer: ['moscato', 'sauternes', 'riesling', 'prosecco', 'asti'],
+      reason: 'Till efterrätt passar ett dessertvin eller något mousserande.' },
+    { key: 'skaldjur', words: ['räkor', 'räka', 'skaldjur', 'musslor', 'kräftor', 'kräfta', 'ostron', 'hummer', 'krabba', 'pilgrim'],
+      label: 'Friskt vitt / mousserande', typeKeys: ['valko', 'kuohu', 'samppanja'],
+      prefer: ['chablis', 'sauvignon', 'muscadet', 'champagne', 'cava', 'riesling', 'albariño', 'albarino'],
+      reason: 'Till skaldjur passar ett friskt vitt eller mousserande.' },
+    { key: 'fet_fisk', words: ['lax', 'tonfisk', 'makrill', 'sill', 'öring'],
+      label: 'Fylligt vitt / rosé', typeKeys: ['valko', 'rosee'],
+      prefer: ['chardonnay', 'rosé', 'rose', 'pinot gris', 'viognier'],
+      reason: 'Till fet fisk som lax passar ett fylligt vitt eller en rosé.' },
+    { key: 'fisk', words: ['fisk', 'torsk', 'sej', 'kolja', 'abborre', 'gös', 'flundra', 'rödspätta', 'havs'],
+      label: 'Torrt vitt', typeKeys: ['valko'],
+      prefer: ['sauvignon', 'riesling', 'chablis', 'grüner', 'gruner', 'pinot grigio', 'vermentino'],
+      reason: 'Till vit fisk passar ett torrt, friskt vitt vin.' },
+    { key: 'starkt', words: ['curry', 'chili', 'asiatisk', 'thai', 'indisk', 'wok', 'kryddig', 'sichuan'],
+      label: 'Halvtorrt vitt / rosé', typeKeys: ['valko', 'rosee'],
+      prefer: ['riesling', 'gewürz', 'gewurz', 'rosé', 'rose'],
+      reason: 'Till kryddstark mat passar ett halvtorrt vitt (Riesling) eller en rosé.' },
+    { key: 'lamm_vilt', words: ['lamm', 'vilt', 'älg', 'hjort', 'rådjur', 'ren', 'vildsvin'],
+      label: 'Kraftigt rött', typeKeys: ['puna'],
+      prefer: ['syrah', 'shiraz', 'cabernet', 'rioja', 'tempranillo', 'malbec', 'barolo', 'nebbiolo', 'amarone'],
+      reason: 'Till lamm och vilt passar ett kraftigt, tanninrikt rött vin.' },
+    { key: 'notkott', words: ['biff', 'nöt', 'oxe', 'oxfilé', 'entrecote', 'ryggbiff', 'högrev', 'stek', 'revben', 'grill'],
+      label: 'Kraftigt rött', typeKeys: ['puna'],
+      prefer: ['cabernet', 'syrah', 'shiraz', 'malbec', 'merlot', 'rioja', 'chianti', 'zinfandel', 'amarone'],
+      reason: 'Till nötkött och grillat passar ett kraftigt rött vin.' },
+    { key: 'fagel_flask', words: ['kyckling', 'fågel', 'kalkon', 'höns', 'fläsk', 'karré', 'kotlett', 'skinka'],
+      label: 'Lättare rött / fylligt vitt', typeKeys: ['puna', 'valko'],
+      prefer: ['pinot noir', 'merlot', 'chardonnay', 'beaujolais', 'barbera'],
+      reason: 'Till kyckling och fläsk passar ett lättare rött eller ett fylligt vitt.' },
+    { key: 'svamp_ost', words: ['svamp', 'tryffel', 'ost', 'parmesan', 'lagrad'],
+      label: 'Smakrikt rött', typeKeys: ['puna'],
+      prefer: ['pinot noir', 'nebbiolo', 'barolo', 'rioja', 'chianti'],
+      reason: 'Till svamp och lagrad ost passar ett smakrikt rött vin.' },
+    { key: 'pasta_tomat', words: ['pasta', 'tomat', 'pizza', 'lasagne', 'bolognese', 'ragu'],
+      label: 'Medelfylligt rött', typeKeys: ['puna'],
+      prefer: ['chianti', 'sangiovese', 'barbera', 'montepulciano', 'primitivo'],
+      reason: 'Till pasta och tomatsås passar ett medelfylligt italienskt rött.' }
+  ];
+
+  var VEG_RULE = { label: 'Vitt eller lätt rött', typeKeys: ['valko', 'puna', 'rosee'],
+    prefer: ['pinot noir', 'sauvignon', 'grenache', 'rosé', 'rose', 'gamay'],
+    reason: 'Till vegetariskt passar ofta ett lätt rött, ett vitt eller en rosé — välj efter rättens tyngd.' };
+
+  var DEFAULT_RULE = { label: 'Mångsidigt vin', typeKeys: ['puna', 'valko', 'rosee'],
+    prefer: [], reason: 'Ett mångsidigt rött eller vitt passar till de flesta rätter.' };
+
+  /** Avgör vinstil för ett recept. recipe: { title, category, text }. */
+  function pairingFor(recipe) {
+    var text = ((recipe.title || '') + ' ' + (recipe.text || '')).toLowerCase();
+    var cat = recipe.category || '';
+
+    for (var i = 0; i < RULES.length; i++) {
+      var r = RULES[i];
+      if (r.cat && r.cat.indexOf(cat) === -1 && !has(text, r.words)) continue;
+      if (r.cat && r.cat.indexOf(cat) !== -1) return r;       // kategori matchar (efterrätt)
+      if (has(text, r.words)) return r;                        // nyckelord matchar
+    }
+    if (cat === 'vegetariskt') return VEG_RULE;
+    return DEFAULT_RULE;
+  }
+
+  function typeMatches(wineType, keys) {
+    var t = (wineType || '').toLowerCase();
+    for (var i = 0; i < keys.length; i++) { if (t.indexOf(keys[i]) !== -1) return true; }
+    return false;
+  }
+
+  /** Ranka och returnera de bästa vinerna för en parning.
+      opts: { max, priceMax }. */
+  function rankWines(pairing, wines, opts) {
+    opts = opts || {};
+    var max = opts.max || 5;
+    var list = (wines || []).filter(function (w) {
+      if (!typeMatches(w.type, pairing.typeKeys)) return false;
+      if (opts.priceMax && w.price > opts.priceMax) return false;
+      return true;
+    });
+
+    list.forEach(function (w) {
+      var name = (w.name + ' ' + (w.producer || '') + ' ' + (w.grapes || '') + ' ' + (w.region || '')).toLowerCase();
+      var s = 0;
+      for (var i = 0; i < pairing.prefer.length; i++) {
+        if (name.indexOf(pairing.prefer[i]) !== -1) { s += 3; }
+      }
+      // föredra rimligt prissatta (10–25 €), undvik extremer
+      var p = w.price || 0;
+      if (p >= 10 && p <= 25) s += 2; else if (p > 25 && p <= 40) s += 1;
+      // tidigare typ i typeKeys väger tyngre (t.ex. rött före vitt i blandade regler)
+      var ti = pairing.typeKeys.findIndex ? pairing.typeKeys.findIndex(function (k) { return typeMatches(w.type, [k]); }) : 0;
+      s += (3 - Math.min(ti, 3)) * 0.5;
+      w._score = s;
+    });
+
+    list.sort(function (a, b) {
+      if (b._score !== a._score) return b._score - a._score;
+      return (a.price || 0) - (b.price || 0);
+    });
+    return list.slice(0, max);
+  }
+
+  global.WinePair = { pairingFor: pairingFor, rankWines: rankWines };
+})(window);
+
+</script>
+
+<!-- winestore.js -->
+<script>
+/* winestore.js — hämtar och tolkar Alkos öppna prislista (hinnasto) live, filtrerar
+   ut vinerna och cachar dem lokalt (IndexedDB via Store.kv). Prislistan är en Excel-fil
+   som laddas via en CORS-vänlig proxy och tolkas med SheetJS (laddas från CDN vid behov).
+   Källa: Alkos offentliga hinnasto. Kräver internet vid hämtning; därefter offline. */
+(function (global) {
+  'use strict';
+
+  var XLSX_URL = 'https://www.alko.fi/INTERSHOP/static/WFS/Alko-OnlineShop-Site/-/Alko-OnlineShop/fi_FI/Alkon%20Hinnasto%20Tekstitiedostona/alkon-hinnasto-tekstitiedostona.xlsx';
+  var SHEETJS = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+  var CACHE_KEY = 'alko_wines';
+
+  var PROXIES = [
+    function (u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
+    function (u) { return 'https://corsproxy.io/?url=' + encodeURIComponent(u); },
+    function (u) { return 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(u); }
+  ];
+
+  function loadScript(src) {
+    return new Promise(function (resolve, reject) {
+      if (document.querySelector('script[data-src="' + src + '"]')) { resolve(); return; }
+      var s = document.createElement('script');
+      s.src = src; s.async = true; s.setAttribute('data-src', src);
+      s.onload = resolve;
+      s.onerror = function () { reject(new Error('Kunde inte ladda Excel-tolken.')); };
+      document.head.appendChild(s);
+    });
+  }
+
+  function fetchArrayBuffer(url) {
+    var i = 0;
+    function tryNext() {
+      if (i >= PROXIES.length) return Promise.reject(new Error('Kunde inte hämta prislistan (alla tjänster nere).'));
+      return fetch(PROXIES[i++](url)).then(function (r) {
+        if (!r.ok) throw new Error('status ' + r.status);
+        return r.arrayBuffer();
+      }).then(function (ab) {
+        if (!ab || ab.byteLength < 10000) throw new Error('för liten fil');
+        return ab;
+      }).catch(function () { return tryNext(); });
+    }
+    return tryNext();
+  }
+
+  function norm(s) { return String(s == null ? '' : s).toLowerCase().replace(/\s+/g, ' ').trim(); }
+
+  // Hitta kolumnindex utifrån finska rubriknamn (delsträngsmatch, med undantag).
+  function colMap(headers) {
+    var H = headers.map(norm);
+    function find(match, avoid) {
+      for (var i = 0; i < H.length; i++) {
+        if (H[i].indexOf(match) !== -1 && (!avoid || H[i].indexOf(avoid) === -1)) return i;
+      }
+      return -1;
+    }
+    return {
+      id: find('numero'),
+      name: find('nimi'),
+      producer: find('valmistaja'),
+      size: find('pullokoko'),
+      price: find('hinta', 'litra'),       // "Hinta", ej "Litrahinta"
+      type: find('tyyppi'),
+      country: find('valmistusmaa'),
+      region: find('alue'),
+      vintage: find('vuosikerta'),
+      abv: find('alkoholi'),
+      grapes: find('rypäl'),
+      desc: find('luonnehdinta')
+    };
+  }
+
+  var WINE_TYPES = ['puna', 'valko', 'rosee', 'kuohu', 'samppanja', 'jälkiruoka', 'väkevöi'];
+  function isWine(type) {
+    var t = norm(type);
+    for (var i = 0; i < WINE_TYPES.length; i++) { if (t.indexOf(WINE_TYPES[i]) !== -1) return true; }
+    return false;
+  }
+
+  function numOf(v) {
+    if (v == null || v === '') return 0;
+    var n = parseFloat(String(v).replace(',', '.').replace(/[^\d.]/g, ''));
+    return isFinite(n) ? n : 0;
+  }
+
+  function parseWorkbook(ab) {
+    var X = global.XLSX;
+    var wb = X.read(new Uint8Array(ab), { type: 'array' });
+    var sheet = wb.Sheets[wb.SheetNames[0]];
+    var rows = X.utils.sheet_to_json(sheet, { header: 1, blankrows: false });
+
+    // Hitta rubrikraden (innehåller "Numero" och "Nimi")
+    var hi = -1;
+    for (var r = 0; r < Math.min(rows.length, 15); r++) {
+      var row = (rows[r] || []).map(norm);
+      if (row.indexOf('numero') !== -1 && row.indexOf('nimi') !== -1) { hi = r; break; }
+    }
+    if (hi === -1) throw new Error('Kunde inte tolka prislistan (okänt format).');
+
+    var c = colMap(rows[hi]);
+    if (c.id === -1 || c.name === -1 || c.type === -1) throw new Error('Saknade kolumner i prislistan.');
+
+    var wines = [];
+    for (var i = hi + 1; i < rows.length; i++) {
+      var row = rows[i]; if (!row) continue;
+      var type = row[c.type];
+      if (!isWine(type)) continue;
+      var name = row[c.name]; if (!name) continue;
+      wines.push({
+        id: String(row[c.id] == null ? '' : row[c.id]).trim(),
+        name: String(name).trim(),
+        producer: c.producer > -1 ? String(row[c.producer] || '').trim() : '',
+        size: c.size > -1 ? String(row[c.size] || '').trim() : '',
+        price: numOf(row[c.price]),
+        type: String(type).trim(),
+        country: c.country > -1 ? String(row[c.country] || '').trim() : '',
+        region: c.region > -1 ? String(row[c.region] || '').trim() : '',
+        vintage: c.vintage > -1 ? String(row[c.vintage] || '').trim() : '',
+        abv: c.abv > -1 ? numOf(row[c.abv]) : 0,
+        grapes: c.grapes > -1 ? String(row[c.grapes] || '').trim() : '',
+        desc: c.desc > -1 ? String(row[c.desc] || '').trim() : ''
+      });
+    }
+    return wines;
+  }
+
+  var WineStore = {
+    /** Returnerar { wines, updatedAt } ur cachen (eller tom). */
+    cached: function () {
+      return Store.kvGet(CACHE_KEY).then(function (data) {
+        return data && data.wines ? data : { wines: [], updatedAt: null };
+      }).catch(function () { return { wines: [], updatedAt: null }; });
+    },
+
+    /** Hämta prislistan live, tolka, cacha och returnera { wines, updatedAt }. */
+    refresh: function (onStatus) {
+      function status(s) { if (onStatus) onStatus(s); }
+      status('Laddar Excel-tolk…');
+      return loadScript(SHEETJS).then(function () {
+        if (!global.XLSX) throw new Error('Excel-tolken kunde inte startas.');
+        status('Hämtar Alkos prislista…');
+        return fetchArrayBuffer(XLSX_URL);
+      }).then(function (ab) {
+        status('Tolkar sortimentet…');
+        var wines = parseWorkbook(ab);
+        if (!wines.length) throw new Error('Inga viner kunde läsas ur prislistan.');
+        var payload = { wines: wines, updatedAt: new Date().toISOString() };
+        return Store.kvSet(CACHE_KEY, payload).then(function () { return payload; });
+      });
+    }
+  };
+
+  global.WineStore = WineStore;
 })(window);
 
 </script>
@@ -1756,6 +2231,49 @@ a{color:var(--brand-2);text-decoration:none}
     return null;
   }
 
+  /* ---------- Brödtext-recept (bloggar utan märkning, t.ex. Squarespace) ---------- */
+
+  // Plocka text ur ett element men behåll radbrytningar (block-element och <br> → ny rad).
+  function nodeToLines(root) {
+    if (!root) return '';
+    var c = root.cloneNode(true);
+    Array.prototype.slice.call(c.querySelectorAll('script,style,nav,footer,header,aside,form,button,noscript')).forEach(function (e) {
+      if (e.parentNode) e.parentNode.removeChild(e);
+    });
+    Array.prototype.slice.call(c.querySelectorAll('br')).forEach(function (br) {
+      if (br.parentNode) br.parentNode.replaceChild(document.createTextNode('\n'), br);
+    });
+    Array.prototype.slice.call(c.querySelectorAll('p,div,li,h1,h2,h3,h4,h5,h6,tr,section')).forEach(function (el) {
+      el.appendChild(document.createTextNode('\n'));
+    });
+    return (c.textContent || '');
+  }
+
+  // Hitta huvudinnehållet (artikel/inläggstext) som innehåller recept-ledtrådar.
+  function pickContentRoot(doc) {
+    var sels = ['article', '[class*="entry-content"]', '.sqs-block-content', '.blog-item-content',
+      'main', '[role="main"]', '.post-content', '.entry', '.content'];
+    var cue = /ingredien|method|instructions|directions|tillagning|g[öo]r s[åa]/i;
+    var best = null, bestLen = 0;
+    for (var i = 0; i < sels.length; i++) {
+      var nodes = doc.querySelectorAll(sels[i]);
+      for (var j = 0; j < nodes.length; j++) {
+        var t = nodes[j].textContent || '';
+        if (cue.test(t) && t.length > bestLen) { best = nodes[j]; bestLen = t.length; }
+      }
+    }
+    return best;
+  }
+
+  function parseProse(doc) {
+    if (!global.RecipeFormat) return null;
+    var root = pickContentRoot(doc) || doc.body;
+    if (!root) return null;
+    var r = global.RecipeFormat.structure(nodeToLines(root));
+    if (!/<ul/i.test(r.html)) return null;   // bara om vi faktiskt fick en ingredienslista
+    return { title: r.title, html: r.html, image: imageFromDoc(doc) };
+  }
+
   /* ---------- Tolkning av en sida ---------- */
 
   function parseHtml(html) { return new DOMParser().parseFromString(html, 'text/html'); }
@@ -1815,16 +2333,28 @@ a{color:var(--brand-2);text-decoration:none}
         }
 
         return pre.then(function (printRes) {
+          // 1) Strukturerad data (JSON-LD / plugin / microdata)
           var result = printRes || parseDoc(doc);
-          if (!result) {
+          if (result) { if (!result.image) result.image = imageFromDoc(doc); return result; }
+
+          // 2) Brödtext-recept (bloggar utan märkning)
+          var prose = parseProse(doc);
+          if (prose) return prose;
+
+          // 3) Läsbar text via r.jina.ai, annars OpenGraph
+          return fetchReadable(url).then(function (txt) {
+            var p = structureFull(cleanMarkdown(txt));
+            if (/<ul|<ol/i.test(p.html)) return { title: p.title, html: p.html, image: imageFromDoc(doc) };
             var og = parseOG(doc);
-            if (og && og.description) result = { title: og.name, html: structureToHtmlOnly(og.description), image: og.image };
-          }
-          if (result) {
-            if (!result.image) result.image = imageFromDoc(doc);  // bild från originalsidan
-            return result;
-          }
-          throw new Error('no-structured-data');
+            if (og && og.description) return { title: og.name || p.title, html: structureToHtmlOnly(og.description), image: og.image || imageFromDoc(doc) };
+            return { title: p.title, html: p.html, image: imageFromDoc(doc) };
+          }).catch(function () {
+            var og2 = parseOG(doc);
+            if (og2 && (og2.description || og2.image)) {
+              return { title: og2.name, html: og2.description ? structureToHtmlOnly(og2.description) : '', image: og2.image || imageFromDoc(doc) };
+            }
+            throw new Error('no-structured-data');
+          });
         });
       }).catch(function () {
         // Sista utväg: läsbar text via r.jina.ai
@@ -1975,7 +2505,7 @@ a{color:var(--brand-2);text-decoration:none}
     vegetariskt: 'Vegetariskt'
   };
 
-  var APP_VERSION = '1.5.0';   // visas under "Om appen"
+  var APP_VERSION = '1.8.0';   // visas under "Om appen"
 
   var $ = function (id) { return document.getElementById(id); };
   var qa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
@@ -2059,6 +2589,7 @@ a{color:var(--brand-2);text-decoration:none}
     $('view-edit').hidden = name !== 'edit';
     $('view-help').hidden = name !== 'help';
     $('view-tools').hidden = name !== 'tools';
+    $('view-shop').hidden = name !== 'shop';
     $('backBtn').hidden = name === 'collection';
     $('fab').hidden = name !== 'collection';
     window.scrollTo(0, 0);
@@ -2105,6 +2636,148 @@ a{color:var(--brand-2);text-decoration:none}
   function openTools() {
     showView('tools');
     if (!convState.inited) { convState.inited = true; convFill(); }
+  }
+
+  /* ---------- Inköpslista ---------- */
+
+  function openShop() { renderShop(); showView('shop'); }
+
+  function renderShop() {
+    var list = Store.getShopping();
+    var box = $('shopList');
+    box.innerHTML = '';
+    if (!list.length) {
+      box.innerHTML = '<p class="shop-empty">Inköpslistan är tom. Lägg till varor från ett recept (knappen i läsvyn) eller skriv in egna ovan.</p>';
+      return;
+    }
+    // ochecked först, bockade sist
+    list.slice().sort(function (a, b) { return (a.checked ? 1 : 0) - (b.checked ? 1 : 0); }).forEach(function (it) {
+      var row = document.createElement('div');
+      row.className = 'shop-item' + (it.checked ? ' done' : '');
+      row.innerHTML =
+        '<button class="shop-check" data-tg="' + it.id + '" aria-label="Bocka av">' + (it.checked ? '✓' : '') + '</button>' +
+        '<span class="shop-text">' + escapeHtml(it.text) + '</span>' +
+        (it.src ? '<span class="shop-src">' + escapeHtml(it.src) + '</span>' : '') +
+        '<button class="shop-rm" data-rm="' + it.id + '" aria-label="Ta bort">×</button>';
+      box.appendChild(row);
+    });
+  }
+
+  // Lägg till aktuella (ev. skalade) ingredienser från läsvyn i inköpslistan.
+  function addRecipeToShopping() {
+    var items = qa('#reader .body ul li').map(function (li) { return li.textContent.replace(/\s+/g, ' ').trim(); }).filter(Boolean);
+    if (!items.length) { toast('Receptet har inga ingredienser att lägga till.'); return; }
+    var list = Store.getShopping();
+    var title = (state.editing && state.editing.title) || '';
+    items.forEach(function (t) { list.push({ id: Store.uuid(), text: t, checked: false, src: title }); });
+    Store.setShopping(list);
+    toast(items.length + ' varor tillagda i inköpslistan.');
+  }
+
+  function addShopItem() {
+    var inp = $('shopInput');
+    var t = (inp.value || '').replace(/\s+/g, ' ').trim();
+    if (!t) return;
+    var list = Store.getShopping();
+    list.push({ id: Store.uuid(), text: t, checked: false, src: '' });
+    Store.setShopping(list);
+    inp.value = '';
+    renderShop();
+  }
+
+  function shopToggle(id) {
+    var list = Store.getShopping();
+    list.forEach(function (it) { if (it.id === id) it.checked = !it.checked; });
+    Store.setShopping(list); renderShop();
+  }
+  function shopRemove(id) {
+    Store.setShopping(Store.getShopping().filter(function (it) { return it.id !== id; }));
+    renderShop();
+  }
+  function shopClearDone() {
+    Store.setShopping(Store.getShopping().filter(function (it) { return !it.checked; }));
+    renderShop();
+  }
+  function shopClearAll() {
+    if (global.confirm('Töm hela inköpslistan?')) { Store.setShopping([]); renderShop(); }
+  }
+
+  function addWineToShopping(text) {
+    var list = Store.getShopping();
+    list.push({ id: Store.uuid(), text: '🍷 ' + text, checked: false, src: 'Vin' });
+    Store.setShopping(list);
+  }
+
+  /* ---------- Vinförslag (Alko) ---------- */
+
+  function openSheet(html) {
+    closeSheet();
+    var ov = document.createElement('div'); ov.className = 'sheet-ov'; ov.id = 'sheetOv';
+    var card = document.createElement('div'); card.className = 'sheet-card';
+    card.innerHTML = html;
+    ov.appendChild(card);
+    document.body.appendChild(ov);
+    ov.addEventListener('click', function (e) {
+      if (e.target === ov || e.target.closest('[data-sheet-close]')) { closeSheet(); return; }
+      var add = e.target.closest('[data-wine]');
+      if (add) { addWineToShopping(add.getAttribute('data-wine')); toast('Vinet tillagt i inköpslistan.'); }
+    });
+  }
+  function closeSheet() { var o = $('sheetOv'); if (o && o.parentNode) o.parentNode.removeChild(o); }
+
+  function refreshWines(cb) {
+    if (!global.WineStore) { toast('Vinväljaren är inte tillgänglig.'); return; }
+    setBusy('Hämtar vinsortiment…');
+    WineStore.refresh(function (s) { $('busyText').textContent = s; }).then(function (d) {
+      clearBusy();
+      toast(d.wines.length + ' viner hämtade från Alko.');
+      if (cb) cb(d);
+    }).catch(function (err) {
+      clearBusy(); toast(err && err.message ? err.message : 'Kunde inte hämta sortimentet.');
+    });
+  }
+
+  function suggestWine() {
+    if (!global.WineStore || !global.WinePair) { toast('Vinväljaren är inte tillgänglig.'); return; }
+    setBusy('Läser vinsortiment…');
+    WineStore.cached().then(function (data) {
+      clearBusy();
+      if (!data.wines.length) {
+        if (global.confirm('Alkos vinsortiment är inte hämtat ännu.\n\nHämta det nu? Laddar ner Alkos prislista (några MB), kräver internet och görs bara en gång.')) {
+          refreshWines(function (d) { showWineSuggestions(d.wines); });
+        }
+        return;
+      }
+      showWineSuggestions(data.wines);
+    }).catch(function () { clearBusy(); toast('Kunde inte läsa vinsortimentet.'); });
+  }
+
+  function showWineSuggestions(wines) {
+    var r = state.editing || {};
+    var recipe = { title: r.title || '', category: r.category || '', text: stripHtml(r.bodyHtml || '') };
+    var pairing = WinePair.pairingFor(recipe);
+    var top = WinePair.rankWines(pairing, wines, { max: 6 });
+
+    var body = '<div class="wine-head"><h2>Vinförslag</h2><p>' + escapeHtml(pairing.label) + ' — ' + escapeHtml(pairing.reason) + '</p></div>';
+    if (!top.length) {
+      body += '<p class="wine-empty">Hittade inga passande viner i sortimentet.</p>';
+    } else {
+      body += '<div class="wine-list">' + top.map(function (w) {
+        var meta = [w.country, w.vintage, w.abv ? (String(w.abv).replace('.', ',') + ' %') : ''].filter(Boolean).join(' · ');
+        var price = w.price ? (w.price.toFixed(2).replace('.', ',') + ' €') : '';
+        var url = w.id ? 'https://www.alko.fi/tuotteet/' + encodeURIComponent(w.id) : '';
+        return '<div class="wine-item"><div class="wine-main"><strong>' + escapeHtml(w.name) + '</strong>' +
+          (w.grapes ? '<span class="wine-grapes">' + escapeHtml(w.grapes) + '</span>' : '') +
+          '<span class="wine-meta">' + escapeHtml(meta) + '</span></div>' +
+          '<div class="wine-side"><span class="wine-price">' + escapeHtml(price) + '</span>' +
+          (url ? '<a class="wine-link" href="' + url + '" target="_blank" rel="noopener">alko.fi</a>' : '') +
+          '<button class="wine-add" data-wine="' + escapeHtml(w.name + (price ? ' (' + price + ')' : '')) + '">＋ lista</button>' +
+          '</div></div>';
+      }).join('') + '</div>';
+    }
+    body += '<div class="wine-foot"><button class="btn" data-action="wine-refresh">Uppdatera sortiment</button>' +
+      '<button class="btn btn-primary" data-sheet-close="1">Stäng</button></div>';
+    openSheet(body);
   }
 
   /* ---------- Samling (lista) ---------- */
@@ -2463,6 +3136,25 @@ a{color:var(--brand-2);text-decoration:none}
     toast('Texten infogad och strukturerad — granska i editorn.');
   }
 
+  // Översätt receptets text i editorn till svenska (maskinöversättning, kräver internet).
+  function translateEditor() {
+    if (!global.Translate) { toast('Översättning är inte tillgänglig.'); return; }
+    var html = Editor.getHtml();
+    var title = $('recipeTitle').value.trim();
+    var plain = html.replace(/<[^>]*>/g, '').trim();
+    if (!plain && !title) { toast('Det finns ingen text att översätta.'); return; }
+    setBusy('Översätter till svenska…');
+    var pTitle = title ? Translate.text(title, 'sv') : Promise.resolve(title);
+    Promise.all([Translate.html(html, 'sv'), pTitle]).then(function (res) {
+      clearBusy();
+      if (res[0]) Editor.setHtml(res[0]);
+      if (res[1]) $('recipeTitle').value = res[1];
+      toast('Översatt till svenska — granska och spara.');
+    }).catch(function () {
+      clearBusy(); toast('Kunde inte översätta (kräver internet). Försök igen.');
+    });
+  }
+
   /* ---------- iCloud: spara/öppna ---------- */
 
   function saveToICloud(recipe) {
@@ -2534,12 +3226,21 @@ a{color:var(--brand-2);text-decoration:none}
       case 'import-pdf': $('filePdf').click(); break;
       case 'import-url': importUrl(); break;
       case 'paste': importPaste(); break;
+      case 'translate': translateEditor(); break;
       case 'open-icloud': closeMenu(); $('fileRecipe').click(); break;
       case 'export-all': closeMenu(); exportAll(); break;
       case 'import-all': closeMenu(); $('fileCollection').click(); break;
       case 'help': closeMenu(); showHelp(); break;
       case 'about': closeMenu(); showHelp('about'); break;
       case 'tools': closeMenu(); openTools(); break;
+      case 'shop': closeMenu(); openShop(); break;
+      case 'add-shop': addRecipeToShopping(); break;
+      case 'suggest-wine': suggestWine(); break;
+      case 'wine-update': closeMenu(); refreshWines(); break;
+      case 'wine-refresh': closeSheet(); refreshWines(function (d) { showWineSuggestions(d.wines); }); break;
+      case 'shop-add': addShopItem(); break;
+      case 'shop-clear-done': shopClearDone(); break;
+      case 'shop-clear-all': shopClearAll(); break;
     }
   }
 
@@ -2601,6 +3302,13 @@ a{color:var(--brand-2);text-decoration:none}
     $('convVal').addEventListener('input', convCompute);
     $('convFrom').addEventListener('change', convCompute);
     $('convTo').addEventListener('change', convCompute);
+
+    // Inköpslista
+    $('shopList').addEventListener('click', function (e) {
+      var tg = e.target.closest('[data-tg]'); if (tg) { shopToggle(tg.getAttribute('data-tg')); return; }
+      var rm = e.target.closest('[data-rm]'); if (rm) { shopRemove(rm.getAttribute('data-rm')); }
+    });
+    $('shopInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); addShopItem(); } });
 
     // Filinmatningar
     $('filePhoto').addEventListener('change', function (e) {
