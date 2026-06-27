@@ -13,10 +13,10 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Lingonberget">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
 
-<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="app.css">
 </head>
 <body>
 <div id="app">
@@ -28,7 +28,7 @@
         <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
       <div class="brand">
-        <img class="brand-logo" src="icons/icon-192.png" alt="">
+        <img class="brand-logo" src="icon-192.png" alt="">
         <div class="brand-text">
           <strong>Lingonberget</strong>
           <span>kulinariska samling</span>
@@ -159,13 +159,13 @@
 </div>
 
 <!-- App scripts (classic order, no bundler) -->
-<script src="js/store.js"></script>
-<script src="js/editor.js"></script>
-<script src="js/ocr.js"></script>
-<script src="js/pdfimport.js"></script>
-<script src="js/webimport.js"></script>
-<script src="js/icloud.js"></script>
-<script src="js/app.js"></script>
+<script src="store.js"></script>
+<script src="editor.js"></script>
+<script src="ocr.js"></script>
+<script src="pdfimport.js"></script>
+<script src="webimport.js"></script>
+<script src="icloud.js"></script>
+<script src="app.js"></script>
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
