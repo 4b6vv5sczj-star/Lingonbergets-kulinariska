@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="dark">
 <title>Lingonbergets kulinariska samling</title>
 <!-- ============================================================= -->
-<!--  LINGONBERGET v1.9.3 — SJÄLVSTÄNDIG VERSION              -->
+<!--  LINGONBERGET v1.9.4 — SJÄLVSTÄNDIG VERSION              -->
 <!--  All CSS och JavaScript är inbakad i denna enda fil.          -->
 <!--  DETTA ÄR DEN NYA FILEN som ska ligga som index.html.         -->
 <!-- ============================================================= -->
@@ -209,15 +209,19 @@ a{color:var(--brand-2);text-decoration:none}
 /* ===== Rich text editor (Baltic-stil) ===== */
 .editor-shell{border:1px solid var(--line-2);border-radius:14px;overflow:hidden;background:var(--surface)}
 .editor-toolbar{
-  display:flex;flex-wrap:wrap;gap:3px;padding:7px 8px;background:var(--surface-2);
-  border-bottom:1px solid var(--line);position:sticky;top:calc(var(--safe-top) + 52px);z-index:5;
+  display:flex;flex-wrap:wrap;gap:7px;padding:9px;background:var(--surface-2);
+  border-bottom:1px solid var(--line);
 }
 .editor-toolbar button{
-  min-width:34px;height:34px;padding:0 9px;border-radius:8px;
-  background:transparent;border:1px solid transparent;color:var(--ink);font-size:15px;
+  flex:1 1 auto;min-width:64px;min-height:50px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:3px;padding:6px 8px;border-radius:11px;
+  background:var(--surface-3);border:1px solid var(--line-2);color:var(--ink);
 }
-.editor-toolbar button:active{background:var(--surface-3)}
-.tb-sep{width:1px;align-self:stretch;margin:4px 4px;background:var(--line-2)}
+.editor-toolbar button:active{background:var(--brand);border-color:var(--brand)}
+.tb-ic{font-size:18px;line-height:1}
+.tb-lbl{font-size:10.5px;color:var(--muted);letter-spacing:.02em}
+.editor-toolbar button:active .tb-lbl{color:#fff}
+.tb-sep{display:none}
 .editor{
   min-height:240px;padding:16px;font-size:16px;line-height:1.65;color:var(--ink);outline:none;
   font-family:var(--serif);
@@ -553,18 +557,12 @@ a{color:var(--brand-2);text-decoration:none}
       <!-- Rich text editor (återanvänder Baltic-editorns mekanism) -->
       <div class="editor-shell">
         <div class="editor-toolbar" id="editorToolbar">
-          <button type="button" data-cmd="formatBlock" data-val="H2" title="Rubrik">H</button>
-          <button type="button" data-cmd="bold" title="Fet"><b>B</b></button>
-          <button type="button" data-cmd="italic" title="Kursiv"><i>I</i></button>
-          <button type="button" data-cmd="underline" title="Understruken"><u>U</u></button>
-          <span class="tb-sep"></span>
-          <button type="button" data-cmd="insertUnorderedList" title="Punktlista">•—</button>
-          <button type="button" data-cmd="insertOrderedList" title="Numrerad lista">1.</button>
-          <span class="tb-sep"></span>
-          <button type="button" data-cmd="hiliteColor" data-val="#3a2530" title="Markera">▣</button>
-          <button type="button" data-cmd="foreColor" data-val="#e6688a" title="Textfärg">A</button>
-          <span class="tb-sep"></span>
-          <button type="button" data-cmd="removeFormat" title="Rensa format">⌫</button>
+          <button type="button" data-cmd="formatBlock" data-val="H2"><span class="tb-ic">H</span><span class="tb-lbl">Rubrik</span></button>
+          <button type="button" data-cmd="bold"><span class="tb-ic"><b>F</b></span><span class="tb-lbl">Fet</span></button>
+          <button type="button" data-cmd="italic"><span class="tb-ic"><i>K</i></span><span class="tb-lbl">Kursiv</span></button>
+          <button type="button" data-cmd="insertUnorderedList"><span class="tb-ic">•</span><span class="tb-lbl">Punkter</span></button>
+          <button type="button" data-cmd="insertOrderedList"><span class="tb-ic">1.</span><span class="tb-lbl">Numrerad</span></button>
+          <button type="button" data-cmd="removeFormat"><span class="tb-ic">⌫</span><span class="tb-lbl">Rensa</span></button>
         </div>
         <div class="editor" id="editor" contenteditable="true" spellcheck="true"
              data-placeholder="Skriv ingredienser och tillagning här. Skannad text och importer hamnar här — redigera fritt."></div>
@@ -2787,7 +2785,7 @@ a{color:var(--brand-2);text-decoration:none}
     vegetariskt: 'Vegetariskt'
   };
 
-  var APP_VERSION = '1.9.3';   // visas under "Om appen"
+  var APP_VERSION = '1.9.4';   // visas under "Om appen"
 
   var $ = function (id) { return document.getElementById(id); };
   var qa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
