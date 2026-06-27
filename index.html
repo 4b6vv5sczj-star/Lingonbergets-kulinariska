@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="dark">
 <title>Lingonbergets kulinariska samling</title>
 <!-- ============================================================= -->
-<!--  LINGONBERGET v1.9.0 — SJÄLVSTÄNDIG VERSION              -->
+<!--  LINGONBERGET v1.9.2 — SJÄLVSTÄNDIG VERSION              -->
 <!--  All CSS och JavaScript är inbakad i denna enda fil.          -->
 <!--  DETTA ÄR DEN NYA FILEN som ska ligga som index.html.         -->
 <!-- ============================================================= -->
@@ -1418,6 +1418,30 @@ a{color:var(--brand-2);text-decoration:none}
     });
   }
 
+  // Översätt en lista textbitar i FÅ buntade anrop (rad-separerade), med fallback
+  // till bit-för-bit om radantalet inte stämmer. Ger jämnare resultat och färre fel.
+  function translateAll(texts, target) {
+    var batches = [], cur = [], len = 0;
+    texts.forEach(function (t) {
+      if (cur.length && (len + t.length > 1100 || cur.length >= 25)) { batches.push(cur); cur = []; len = 0; }
+      cur.push(t); len += t.length + 1;
+    });
+    if (cur.length) batches.push(cur);
+
+    return mapPool(batches, function (batch) {
+      return gtx(batch.join('\n'), target).then(function (res) {
+        var parts = res.split('\n');
+        if (parts.length === batch.length) return parts;
+        // Radantalet ändrades → översätt varje bit för sig
+        return mapPool(batch, function (t) { return gtx(t, target); }, 4);
+      }).catch(function () { return batch; });
+    }, 2).then(function (arrs) {
+      var out = [];
+      arrs.forEach(function (a) { out = out.concat(a || []); });
+      return out;
+    });
+  }
+
   var Translate = {
     /** Översätt en sträng. */
     text: function (str, target) { return gtx(str, target || 'sv'); },
@@ -1439,12 +1463,10 @@ a{color:var(--brand-2);text-decoration:none}
       })(root);
 
       if (!nodes.length) return Promise.resolve(html);
-      if (nodes.length > 80) nodes = nodes.slice(0, 80);   // skälig gräns
+      if (nodes.length > 120) nodes = nodes.slice(0, 120);
 
-      return mapPool(nodes.map(function (n) { return n.nodeValue; }), function (t) {
-        return gtx(t, target);
-      }, 5).then(function (tr) {
-        for (var i = 0; i < nodes.length; i++) { if (tr[i] != null) nodes[i].nodeValue = tr[i]; }
+      return translateAll(nodes.map(function (n) { return n.nodeValue; }), target).then(function (tr) {
+        for (var i = 0; i < nodes.length; i++) { if (tr[i] != null && tr[i] !== '') nodes[i].nodeValue = tr[i]; }
         return root.innerHTML;
       });
     }
@@ -2770,7 +2792,7 @@ a{color:var(--brand-2);text-decoration:none}
     vegetariskt: 'Vegetariskt'
   };
 
-  var APP_VERSION = '1.9.0';   // visas under "Om appen"
+  var APP_VERSION = '1.9.2';   // visas under "Om appen"
 
   var $ = function (id) { return document.getElementById(id); };
   var qa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
@@ -2952,9 +2974,18 @@ a{color:var(--brand-2);text-decoration:none}
     return n;
   }
 
+  // Skilj en ingrediensrad från ett tillagningssteg (steg = lång hel mening).
+  function isIngredientish(t) {
+    if (!t) return false;
+    if (t.length > 60) return false;
+    if (/[.!?]$/.test(t) && t.split(/\s+/).length > 8) return false;
+    return true;
+  }
+
   // Lägg till aktuella (ev. skalade) ingredienser från läsvyn i inköpslistan.
   function addRecipeToShopping() {
-    var items = qa('#reader .body ul li').map(function (li) { return li.textContent.replace(/\s+/g, ' ').trim(); }).filter(Boolean);
+    var items = qa('#reader .body ul li').map(function (li) { return li.textContent.replace(/\s+/g, ' ').trim(); })
+      .filter(Boolean).filter(isIngredientish);
     if (!items.length) { toast('Receptet har inga ingredienser att lägga till.'); return; }
     var n = addIngredients(items, (state.editing && state.editing.title) || '');
     toast(n + ' varor tillagda (dubbletter sammanslagna).');
@@ -3130,10 +3161,12 @@ a{color:var(--brand-2);text-decoration:none}
   }
 
   function parseTimerMin(s) {
-    var m = s.match(/(\d+)\s*(?:[-–]\s*(\d+))?\s*(min|minut|timm|tim|h)\b/i);
+    var m = s.match(/(\d+(?:[.,]\d+)?)\s*(?:[-–]\s*(\d+(?:[.,]\d+)?))?\s*(minuter|minuten|minutes|minute|minut|min|timmar|timmen|timme|tim|hours|hour|hrs|hr|h)\b/i);
     if (!m) return 0;
-    var n = parseInt(m[2] || m[1], 10);
-    if (/tim|^h$/i.test(m[3])) n *= 60;
+    var n = parseFloat((m[2] || m[1]).replace(',', '.'));  // övre gränsen vid intervall
+    var u = m[3].charAt(0).toLowerCase();
+    if (u === 't' || u === 'h') n *= 60;  // timmar / hours
+    n = Math.round(n);
     return (n > 0 && n <= 600) ? n : 0;
   }
 
@@ -3246,7 +3279,7 @@ a{color:var(--brand-2);text-decoration:none}
       var plan = Store.getPlan(), total = 0;
       DAYS.forEach(function (d, i) {
         var r = plan[i] && byId[plan[i]]; if (!r) return;
-        total += addIngredients(textFromHtml(r.bodyHtml, 'ul li'), r.title);
+        total += addIngredients(textFromHtml(r.bodyHtml, 'ul li').filter(isIngredientish), r.title);
       });
       if (!total) { toast('Lägg in recept i veckan först.'); return; }
       toast('Inköpslista byggd från veckan (dubbletter sammanslagna).'); openShop();
