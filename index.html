@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="dark">
 <title>Lingonbergets kulinariska samling</title>
 <!-- ============================================================= -->
-<!--  LINGONBERGET v1.8.1 — SJÄLVSTÄNDIG VERSION              -->
+<!--  LINGONBERGET v1.8.2 — SJÄLVSTÄNDIG VERSION              -->
 <!--  All CSS och JavaScript är inbakad i denna enda fil.          -->
 <!--  DETTA ÄR DEN NYA FILEN som ska ligga som index.html.         -->
 <!-- ============================================================= -->
@@ -1227,16 +1227,17 @@ a{color:var(--brand-2);text-decoration:none}
     return false;
   }
 
-  // Regler i prioritetsordning. typeKeys = delsträngar som matchar Alkos "type".
+  // Dessertparningar — gäller ENDAST kategorin efterrätt/bakverk, aldrig huvudrätt.
+  var CHOC_WORDS = ['choklad', 'chocolate', 'kaka', 'brownie', 'mousse', 'tryffel', 'fudge'];
+  var RULE_CHOC = { label: 'Sött/fylligt till choklad', typeKeys: ['jälkiruoka', 'väkev', 'puna'],
+    prefer: ['port', 'banyuls', 'amarone', 'recioto', 'pedro xim', 'maury'],
+    reason: 'Till chokladdessert passar ett sött, fylligt vin (portvin eller kraftigt sött rött).' };
+  var RULE_DESSERT = { label: 'Dessert/mousserande', typeKeys: ['jälkiruoka', 'kuohu', 'samppanja'],
+    prefer: ['moscato', 'sauternes', 'riesling', 'prosecco', 'asti'],
+    reason: 'Till efterrätt passar ett dessertvin eller något mousserande.' };
+
+  // Råvaruregler — matchas på nyckelord, för alla icke-dessertkategorier.
   var RULES = [
-    { key: 'efterratt_choklad', cat: ['efterratt', 'bakverk'], words: ['choklad', 'chocolate', 'kaka', 'brownie', 'mousse', 'tryffel'],
-      label: 'Sött/fylligt till choklad', typeKeys: ['jälkiruoka', 'väkev', 'puna'],
-      prefer: ['port', 'banyuls', 'amarone', 'recioto', 'pedro xim', 'maury'],
-      reason: 'Till chokladdessert passar ett sött, fylligt vin (portvin eller kraftigt sött rött).' },
-    { key: 'efterratt', cat: ['efterratt', 'bakverk'], words: ['glass', 'paj', 'frukt', 'bär', 'cheesecake', 'pannacotta', 'kräm', 'sött'],
-      label: 'Dessert/mousserande', typeKeys: ['jälkiruoka', 'kuohu', 'samppanja'],
-      prefer: ['moscato', 'sauternes', 'riesling', 'prosecco', 'asti'],
-      reason: 'Till efterrätt passar ett dessertvin eller något mousserande.' },
     { key: 'skaldjur', words: ['räkor', 'räka', 'skaldjur', 'musslor', 'kräftor', 'kräfta', 'ostron', 'hummer', 'krabba', 'pilgrim'],
       label: 'Friskt vitt / mousserande', typeKeys: ['valko', 'kuohu', 'samppanja'],
       prefer: ['chablis', 'sauvignon', 'muscadet', 'champagne', 'cava', 'riesling', 'albariño', 'albarino'],
@@ -1287,11 +1288,12 @@ a{color:var(--brand-2);text-decoration:none}
     var text = ((recipe.title || '') + ' ' + (recipe.text || '')).toLowerCase();
     var cat = recipe.category || '';
 
+    // Dessert/bakverk → alltid dessertparning. Övriga kategorier → aldrig dessertvin.
+    if (cat === 'efterratt' || cat === 'bakverk') {
+      return has(text, CHOC_WORDS) ? RULE_CHOC : RULE_DESSERT;
+    }
     for (var i = 0; i < RULES.length; i++) {
-      var r = RULES[i];
-      if (r.cat && r.cat.indexOf(cat) === -1 && !has(text, r.words)) continue;
-      if (r.cat && r.cat.indexOf(cat) !== -1) return r;       // kategori matchar (efterrätt)
-      if (has(text, r.words)) return r;                        // nyckelord matchar
+      if (has(text, RULES[i].words)) return RULES[i];
     }
     if (cat === 'vegetariskt') return VEG_RULE;
     return DEFAULT_RULE;
@@ -2525,7 +2527,7 @@ a{color:var(--brand-2);text-decoration:none}
     vegetariskt: 'Vegetariskt'
   };
 
-  var APP_VERSION = '1.8.1';   // visas under "Om appen"
+  var APP_VERSION = '1.8.2';   // visas under "Om appen"
 
   var $ = function (id) { return document.getElementById(id); };
   var qa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
