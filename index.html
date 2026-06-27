@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="dark">
 <title>Lingonbergets kulinariska samling</title>
 <!-- ============================================================= -->
-<!--  LINGONBERGET v1.2.0 — SJÄLVSTÄNDIG VERSION              -->
+<!--  LINGONBERGET v1.4.0 — SJÄLVSTÄNDIG VERSION              -->
 <!--  All CSS och JavaScript är inbakad i denna enda fil.          -->
 <!--  DETTA ÄR DEN NYA FILEN som ska ligga som index.html.         -->
 <!-- ============================================================= -->
@@ -262,6 +262,24 @@ a{color:var(--brand-2);text-decoration:none}
   padding:12px 18px;border-radius:12px;font-size:14px;box-shadow:var(--shadow);max-width:90vw;text-align:center;
 }
 
+/* ===== Crop (beskärning före OCR) ===== */
+.crop-ov{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;
+  background:rgba(6,9,12,.96);padding:calc(var(--safe-top) + 10px) 10px calc(var(--safe-bottom) + 10px);
+  touch-action:none;-webkit-user-select:none;user-select:none}
+.crop-stage{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.crop-img{max-width:100%;max-height:100%;object-fit:contain;display:block;-webkit-user-drag:none;pointer-events:none}
+.crop-sel{position:absolute;border:2px solid var(--lingon);box-shadow:0 0 0 9999px rgba(6,9,12,.55);
+  border-radius:4px;box-sizing:border-box}
+.crop-h{position:absolute;width:30px;height:30px;background:var(--lingon);border:2px solid #fff;border-radius:50%}
+.crop-h.tl{left:-15px;top:-15px}.crop-h.tr{right:-15px;top:-15px}
+.crop-h.bl{left:-15px;bottom:-15px}.crop-h.br{right:-15px;bottom:-15px}
+.crop-hint{color:var(--muted);font-size:13px;text-align:center;margin:10px 0 6px}
+.crop-bar{display:flex;gap:10px;justify-content:center}
+.crop-bar button{flex:1 1 auto;max-width:200px;padding:13px 16px;border-radius:12px;font-size:15px;font-weight:600;
+  background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink)}
+.crop-bar button.primary{background:var(--lingon);border-color:var(--lingon);color:#fff}
+.crop-bar button:active{transform:translateY(1px)}
+
 [hidden]{display:none !important}
 
 </style>
@@ -398,13 +416,13 @@ a{color:var(--brand-2);text-decoration:none}
         <p>Tryck på <strong>＋</strong> (eller "Nytt recept" i menyn) för att skapa ett recept. Ge det ett namn, välj kategori och skriv ingredienser och tillagning i texteditorn. Verktygsfältet ger rubriker, fet/kursiv text, punkt- och nummerlistor.</p>
 
         <h2>Fota &amp; skanna recept (OCR)</h2>
-        <p>Tryck på <strong>Skanna recept (OCR)</strong> för att fotografera eller välja en bild på ett recept. Texten läses av och struktureras automatiskt till ingredienser och steg. Du kan <strong>välja eller fota flera sidor på en gång</strong> — alla bilder läggs i galleriet och texten sätts ihop i ordning. Granska och rätta alltid resultatet, särskilt vid handstil.</p>
+        <p>Tryck på <strong>Skanna recept (OCR)</strong> för att fotografera eller välja en bild på ett recept. På en <strong>tidningssida med flera spalter</strong> får du först <strong>rama in just receptet</strong> — dra rutan så att bara den spalten är med, så slipper OCR:en läsa grannrecept och bildtexter. Bilden förbättras (gråskala, kontrast) före tolkning. Du kan <strong>fota flera sidor på en gång</strong> — alla läses i ordning. Granska och rätta alltid resultatet. Bästa resultat: fota rakt ovanifrån, nära, med jämnt ljus.</p>
 
         <h2>Importera PDF</h2>
         <p>Tryck på <strong>Importera PDF</strong> och välj en fil från Filer, iCloud Drive eller OneDrive. Har PDF:en ett textlager plockas texten ut rad för rad. Är PDF:en <strong>inskannad</strong> (sidorna är bilder) tolkas de automatiskt med bildigenkänning. Förstasidan sparas som bild.</p>
 
         <h2>Importera från webben — köket.se &amp; Pinterest</h2>
-        <p>Tryck på <strong>Importera från länk</strong> och klistra in en receptadress. Appen provar flera hämtningssätt och läser i första hand sidans recept-märkning (titel, ingredienser, steg, bild). En <strong>Pinterest-pin</strong> pekar oftast vidare till en källsajt — appen följer den länken och hämtar det riktiga receptet därifrån. Blockerar sajten allt, använd "Klistra in recept".</p>
+        <p>Tryck på <strong>Importera från länk</strong> och klistra in en receptadress. Appen provar flera hämtningssätt och letar i första hand efter sidans <strong>reklamfria "skriv ut"-version</strong> samt recept-märkning (titel, ingredienser, steg, bild) — så ads och popups stör inte. En <strong>Pinterest-pin</strong> pekar oftast vidare till en källsajt; appen följer den länken. Tips: på Pinterest kan du också öppna pinnen, gå till källbloggen och klistra in <strong>den</strong> adressen. Blockerar en sajt allt, använd "Klistra in recept".</p>
 
         <h2>Klistra in text</h2>
         <p>Tryck på <strong>Klistra in recept</strong> och klistra in valfri recepttext. Den tolkas och struktureras direkt — fungerar alltid, även utan internet.</p>
@@ -841,11 +859,223 @@ a{color:var(--brand-2);text-decoration:none}
 
 </script>
 
+<!-- imageprep.js -->
+<script>
+/* imageprep.js — förbehandlar en bild inför OCR för bättre träffsäkerhet på foton:
+   skalar till lämplig upplösning, gråskala och kontrasthöjning. Tesseract sköter
+   själva tröskling (svartvitt) internt, så vi binariserar inte hårt här — det skulle
+   förstöra text vid ojämn belysning. Returnerar en ny data-URL; originalbilden rörs ej. */
+(function (global) {
+  'use strict';
+
+  function loadImage(src) {
+    return new Promise(function (resolve, reject) {
+      var img = new Image();
+      img.onload = function () { resolve(img); };
+      img.onerror = function () { reject(new Error('Kunde inte läsa bilden.')); };
+      img.src = src;
+    });
+  }
+
+  var ImagePrep = {
+    /** Returnerar en förbättrad data-URL (gråskala + kontrast + skalning). */
+    process: function (dataUrl) {
+      return loadImage(dataUrl).then(function (img) {
+        try {
+          var w = img.naturalWidth || img.width;
+          var h = img.naturalHeight || img.height;
+          if (!w || !h) return dataUrl;
+
+          // Sikta på ~1400–2200 px bredd: skala upp liten text, ner väldigt stora foton.
+          var target = Math.min(2200, Math.max(1400, w));
+          var scale = target / w;
+          var W = Math.round(w * scale), H = Math.round(h * scale);
+
+          var c = document.createElement('canvas');
+          c.width = W; c.height = H;
+          var ctx = c.getContext('2d');
+          ctx.drawImage(img, 0, 0, W, H);
+
+          var imgData = ctx.getImageData(0, 0, W, H);
+          var d = imgData.data;
+          var contrast = 1.4;             // kontraststyrka
+          var bright = 8;                 // lätt ljusning
+          for (var i = 0; i < d.length; i += 4) {
+            var g = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+            g = (g - 128) * contrast + 128 + bright;
+            g = g < 0 ? 0 : (g > 255 ? 255 : g);
+            d[i] = d[i + 1] = d[i + 2] = g;
+          }
+          ctx.putImageData(imgData, 0, 0);
+          return c.toDataURL('image/jpeg', 0.92);
+        } catch (e) {
+          return dataUrl;   // vid fel: använd originalet
+        }
+      }).catch(function () { return dataUrl; });
+    }
+  };
+
+  global.ImagePrep = ImagePrep;
+})(window);
+
+</script>
+
+<!-- cropper.js -->
+<script>
+/* cropper.js — enkel beskärning för touch. Visar bilden i helskärm med en flyttbar
+   och storleksändringsbar markeringsruta. Används för att rama in just receptet på en
+   tidningssida innan OCR. Cropper.open(dataUrl) returnerar en Promise som ger:
+     - en beskuren data-URL (om användaren ramar in och trycker "Tolka markering")
+     - originalets data-URL (om "Hela bilden")
+     - null (om "Avbryt").
+   Inga beroenden. Pointer Events fungerar för både touch och mus. */
+(function (global) {
+  'use strict';
+
+  function el(tag, cls) { var e = document.createElement(tag); if (cls) e.className = cls; return e; }
+  function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+
+  var Cropper = {
+    open: function (dataUrl) {
+      return new Promise(function (resolve) {
+        var ov = el('div', 'crop-ov');
+        var stage = el('div', 'crop-stage');
+        var img = el('img', 'crop-img');
+        var sel = el('div', 'crop-sel');
+        var hint = el('p', 'crop-hint');
+        hint.textContent = 'Dra för att rama in receptet — eller välj "Hela bilden".';
+
+        ['tl', 'tr', 'bl', 'br'].forEach(function (h) {
+          var hd = el('span', 'crop-h ' + h); hd.setAttribute('data-h', h); sel.appendChild(hd);
+        });
+
+        var bar = el('div', 'crop-bar');
+        var bCancel = el('button'); bCancel.textContent = 'Avbryt'; bCancel.setAttribute('data-c', 'cancel');
+        var bWhole = el('button'); bWhole.textContent = 'Hela bilden'; bWhole.setAttribute('data-c', 'whole');
+        var bOk = el('button', 'primary'); bOk.textContent = 'Tolka markering'; bOk.setAttribute('data-c', 'ok');
+        bar.appendChild(bCancel); bar.appendChild(bWhole); bar.appendChild(bOk);
+
+        stage.appendChild(img); stage.appendChild(sel);
+        ov.appendChild(stage); ov.appendChild(hint); ov.appendChild(bar);
+        document.body.appendChild(ov);
+
+        var box = { x: 0, y: 0, w: 0, h: 0 };   // i visade pixlar relativt bilden
+        var imgRect = { left: 0, top: 0, w: 0, h: 0 };
+
+        function measure() {
+          var r = img.getBoundingClientRect();
+          var sr = stage.getBoundingClientRect();
+          imgRect.left = r.left - sr.left;
+          imgRect.top = r.top - sr.top;
+          imgRect.w = r.width;
+          imgRect.h = r.height;
+        }
+
+        function drawSel() {
+          sel.style.left = (imgRect.left + box.x) + 'px';
+          sel.style.top = (imgRect.top + box.y) + 'px';
+          sel.style.width = box.w + 'px';
+          sel.style.height = box.h + 'px';
+        }
+
+        function initBox() {
+          measure();
+          box.x = imgRect.w * 0.08;
+          box.y = imgRect.h * 0.08;
+          box.w = imgRect.w * 0.84;
+          box.h = imgRect.h * 0.84;
+          drawSel();
+        }
+
+        img.onload = function () { setTimeout(initBox, 30); };
+        img.src = dataUrl;
+        window.addEventListener('resize', initBox);
+
+        // ----- interaktion -----
+        var mode = null, handle = null, sx = 0, sy = 0, start = null;
+
+        function pt(e) { return { x: e.clientX, y: e.clientY }; }
+
+        function onDown(e) {
+          var t = e.target;
+          measure();
+          start = { x: box.x, y: box.y, w: box.w, h: box.h };
+          var p = pt(e); sx = p.x; sy = p.y;
+          if (t.classList && t.classList.contains('crop-h')) {
+            mode = 'resize'; handle = t.getAttribute('data-h');
+          } else if (t === sel || (t.parentNode === sel)) {
+            mode = 'move';
+          } else { mode = null; return; }
+          e.preventDefault();
+          ov.setPointerCapture && ov.setPointerCapture(e.pointerId);
+        }
+
+        function onMove(e) {
+          if (!mode) return;
+          e.preventDefault();
+          var p = pt(e);
+          var dx = p.x - sx, dy = p.y - sy;
+          if (mode === 'move') {
+            box.x = clamp(start.x + dx, 0, imgRect.w - box.w);
+            box.y = clamp(start.y + dy, 0, imgRect.h - box.h);
+          } else if (mode === 'resize') {
+            var minS = 40;
+            var x1 = start.x, y1 = start.y, x2 = start.x + start.w, y2 = start.y + start.h;
+            if (handle === 'tl') { x1 = clamp(start.x + dx, 0, x2 - minS); y1 = clamp(start.y + dy, 0, y2 - minS); }
+            if (handle === 'tr') { x2 = clamp(start.x + start.w + dx, x1 + minS, imgRect.w); y1 = clamp(start.y + dy, 0, y2 - minS); }
+            if (handle === 'bl') { x1 = clamp(start.x + dx, 0, x2 - minS); y2 = clamp(start.y + start.h + dy, y1 + minS, imgRect.h); }
+            if (handle === 'br') { x2 = clamp(start.x + start.w + dx, x1 + minS, imgRect.w); y2 = clamp(start.y + start.h + dy, y1 + minS, imgRect.h); }
+            box.x = x1; box.y = y1; box.w = x2 - x1; box.h = y2 - y1;
+          }
+          drawSel();
+        }
+
+        function onUp(e) { mode = null; handle = null; }
+
+        stage.addEventListener('pointerdown', onDown);
+        stage.addEventListener('pointermove', onMove);
+        stage.addEventListener('pointerup', onUp);
+        stage.addEventListener('pointercancel', onUp);
+
+        // ----- avsluta -----
+        function cleanup() {
+          window.removeEventListener('resize', initBox);
+          if (ov.parentNode) ov.parentNode.removeChild(ov);
+        }
+
+        function cropToDataUrl() {
+          var nW = img.naturalWidth, nH = img.naturalHeight;
+          var fx = nW / imgRect.w, fy = nH / imgRect.h;
+          var sxp = box.x * fx, syp = box.y * fy, swp = box.w * fx, shp = box.h * fy;
+          var c = document.createElement('canvas');
+          c.width = Math.max(1, Math.round(swp));
+          c.height = Math.max(1, Math.round(shp));
+          c.getContext('2d').drawImage(img, sxp, syp, swp, shp, 0, 0, c.width, c.height);
+          try { return c.toDataURL('image/jpeg', 0.92); } catch (e) { return dataUrl; }
+        }
+
+        bar.addEventListener('click', function (e) {
+          var b = e.target.closest('button'); if (!b) return;
+          var c = b.getAttribute('data-c');
+          if (c === 'cancel') { cleanup(); resolve(null); }
+          else if (c === 'whole') { cleanup(); resolve(dataUrl); }
+          else if (c === 'ok') { var out = cropToDataUrl(); cleanup(); resolve(out); }
+        });
+      });
+    }
+  };
+
+  global.Cropper = Cropper;
+})(window);
+
+</script>
+
 <!-- ocr.js -->
 <script>
 /* ocr.js — handskrifts-/textigenkänning via Tesseract.js (MIT), laddas från CDN vid behov.
    Språk: svenska + engelska. Handskrift är ungefärligt — resultatet hamnar i editorn
-   där användaren snabbt kan rätta det. */
+   där användaren snabbt kan rätta det. Enspaltsläge (PSM 4) passar receptspalter med
+   rubriker och numrerade steg. */
 (function (global) {
   'use strict';
 
@@ -885,7 +1115,12 @@ a{color:var(--brand-2);text-decoration:none}
         return global.Tesseract.createWorker('swe+eng', 1, opts);
       }).then(function (worker) {
         _worker = worker;
-        return worker.recognize(image).then(function (res) {
+        return worker.setParameters({
+          tessedit_pageseg_mode: '4',        // enstaka kolumn med varierande textstorlek
+          preserve_interword_spaces: '1'
+        }).catch(function () { /* äldre version: hoppa över */ }).then(function () {
+          return worker.recognize(image);
+        }).then(function (res) {
           var text = (res && res.data && res.data.text) ? res.data.text : '';
           return worker.terminate().then(function () { _worker = null; return text.trim(); });
         }).catch(function (err) {
@@ -1066,19 +1301,22 @@ a{color:var(--brand-2);text-decoration:none}
    eller från inklistrad text.
 
    Hämtning: en webbapp får inte läsa främmande sajter direkt (CORS). Vi provar därför
-   FLERA CORS-vänliga läs-tjänster i tur och ordning tills en lyckas — det gör importen
-   mycket mer pålitlig än med en enda tjänst.
+   FLERA CORS-vänliga läs-tjänster i tur och ordning tills en lyckas.
+
+   Reklam & popups: receptbloggar är ofta nedlusade med annonser. Därför letar appen
+   först efter sidans "Skriv ut recept"-länk (en ren, reklamfri version av bara receptet)
+   och hämtar från den. Vi läser också receptpluginernas egen märkning (WP Recipe Maker,
+   Tasty Recipes, Mediavine Create) direkt.
 
    Tolkning, i prioritetsordning:
-     1) schema.org "Recipe" som JSON-LD (titel, ingredienser, steg, bild) — de flesta
-        receptsajter (inkl. köket.se) bäddar in detta.
-     2) Microdata (itemprop="recipeIngredient" m.m.) — äldre sajter utan JSON-LD.
-     3) OpenGraph-beskrivning → struktureras av RecipeFormat.
-     4) Läsbar text via r.jina.ai → struktureras av RecipeFormat.
+     1) "Skriv ut"-versionen om en sådan länk finns (renast).
+     2) schema.org "Recipe" (JSON-LD).
+     3) Receptpluginens märkning (WPRM / Tasty / Mediavine).
+     4) Microdata (itemprop=...).
+     5) OpenGraph-beskrivning → RecipeFormat.
+     6) Läsbar text via r.jina.ai → RecipeFormat.
 
-   Pinterest: en "pin" är i princip en hänvisning till en källsajt — vi letar upp den
-   ursprungliga receptlänken i pin-sidan och hämtar receptet därifrån.
-
+   Pinterest: en "pin" pekar oftast vidare till en källsajt — vi följer den länken.
    "Klistra in recept" fungerar alltid och kräver ingen nätåtkomst. */
 (function (global) {
   'use strict';
@@ -1109,8 +1347,8 @@ a{color:var(--brand-2);text-decoration:none}
   }
 
   function fetchReadable(url) {
-    var clean = url.replace(/^https?:\/\//, '');
-    return fetch('https://r.jina.ai/https://' + clean).then(function (r) {
+    var clean2 = url.replace(/^https?:\/\//, '');
+    return fetch('https://r.jina.ai/https://' + clean2).then(function (r) {
       if (!r.ok) throw new Error('reader ' + r.status);
       return r.text();
     });
@@ -1148,6 +1386,10 @@ a{color:var(--brand-2);text-decoration:none}
     return null;
   }
 
+  function absUrl(href, base) {
+    try { return new URL(href, base).href; } catch (e) { return href; }
+  }
+
   /* ---------- Strukturering (delas med OCR/PDF via RecipeFormat) ---------- */
 
   function structureFull(text) {
@@ -1160,19 +1402,15 @@ a{color:var(--brand-2);text-decoration:none}
     return r.html || ('<p>' + esc(clean(text)) + '</p>');
   }
 
-  // Rensa r.jina.ai-markdown (rubriker, fetstil, bilder, länkar) inför strukturering.
   function cleanMarkdown(txt) {
     return String(txt || '')
       .replace(/^Title:.*$/m, '')
       .replace(/^URL Source:.*$/m, '')
       .replace(/^Markdown Content:.*$/m, '')
-      .replace(/!\[[^\]]*\]\([^)]*\)/g, '')          // bilder
-      .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')        // länkar → text
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
       .split(/\r?\n/).map(function (l) {
-        return l.replace(/^#{1,6}\s*/, '')             // rubriker
-                .replace(/\*\*|__/g, '')               // fetstil
-                .replace(/^\s*[*+]\s+/, '- ')           // normalisera punktlistor
-                .replace(/\s+$/, '');
+        return l.replace(/^#{1,6}\s*/, '').replace(/\*\*|__/g, '').replace(/^\s*[*+]\s+/, '- ').replace(/\s+$/, '');
       }).join('\n');
   }
 
@@ -1214,7 +1452,7 @@ a{color:var(--brand-2);text-decoration:none}
         var data = JSON.parse(raw);
         var recipe = findRecipe(data);
         if (recipe) return recipe;
-      } catch (e) { /* hoppa över trasig JSON-LD */ }
+      } catch (e) { /* trasig JSON-LD */ }
     }
     return null;
   }
@@ -1236,13 +1474,51 @@ a{color:var(--brand-2);text-decoration:none}
       steps.forEach(function (x) { parts.push('<li>' + esc(x) + '</li>'); });
       parts.push('</ol>');
     }
-    if (!ingredients.length && !steps.length && r.description) {
-      parts.push(structureToHtmlOnly(r.description));
-    }
+    if (!ingredients.length && !steps.length && r.description) parts.push(structureToHtmlOnly(r.description));
     return parts.join('');
   }
 
-  /* ---------- Microdata-reserv ---------- */
+  /* ---------- Receptplugin-märkning (WPRM / Tasty / Mediavine) ---------- */
+
+  // Ta bort inledande list-/kryssrutemarkörer (▢ □ ☐ • · -) som vissa plugin lägger till.
+  function cleanItem(s) { return clean(s).replace(/^[▢□☐■•·*\-•▢□\s]+/, ''); }
+
+  function textList(doc, selectors) {
+    for (var i = 0; i < selectors.length; i++) {
+      var els = doc.querySelectorAll(selectors[i]);
+      if (els.length) {
+        var out = [];
+        Array.prototype.slice.call(els).forEach(function (el) { var t = cleanItem(el.textContent); if (t) out.push(t); });
+        if (out.length) return out;
+      }
+    }
+    return [];
+  }
+
+  function parsePluginMarkup(doc) {
+    var ing = textList(doc, [
+      '.wprm-recipe-ingredient',
+      '.tasty-recipes-ingredients li', '.tasty-recipe-ingredients li',
+      '.mv-create-ingredients li',
+      '.recipe-ingredients li'
+    ]);
+    var steps = textList(doc, [
+      '.wprm-recipe-instruction-text', '.wprm-recipe-instruction',
+      '.tasty-recipes-instructions li', '.tasty-recipe-instructions li',
+      '.mv-create-instructions li',
+      '.recipe-instructions li', '.recipe-directions li'
+    ]);
+    if (!ing.length && !steps.length) return null;
+
+    var nameEl = doc.querySelector('.wprm-recipe-name, .tasty-recipes-title, .mv-create-title');
+    var imgEl = doc.querySelector('.wprm-recipe-image img, .tasty-recipes-image img, .mv-create-image img');
+    var parts = [];
+    if (ing.length) parts.push('<h2>Ingredienser</h2><ul>' + ing.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>');
+    if (steps.length) parts.push('<h2>Gör så här</h2><ol>' + steps.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ol>');
+    return { name: nameEl ? clean(nameEl.textContent) : '', html: parts.join(''), image: imgEl ? imgEl.getAttribute('src') : null };
+  }
+
+  /* ---------- Microdata ---------- */
 
   function parseMicrodata(doc) {
     var ing = Array.prototype.slice.call(
@@ -1253,19 +1529,14 @@ a{color:var(--brand-2);text-decoration:none}
     var steps = [];
     Array.prototype.slice.call(stepEls).forEach(function (el) {
       var lis = el.querySelectorAll('li');
-      if (lis.length) {
-        Array.prototype.slice.call(lis).forEach(function (li) { var t = clean(li.textContent); if (t) steps.push(t); });
-      } else {
-        clean(el.textContent).split(/\.\s+(?=[A-ZÅÄÖ])/).forEach(function (t) { t = clean(t); if (t) steps.push(t); });
-      }
+      if (lis.length) Array.prototype.slice.call(lis).forEach(function (li) { var t = clean(li.textContent); if (t) steps.push(t); });
+      else clean(el.textContent).split(/\.\s+(?=[A-ZÅÄÖ])/).forEach(function (t) { t = clean(t); if (t) steps.push(t); });
     });
-
     if (!ing.length && !steps.length) return null;
 
     var nameEl = doc.querySelector('[itemprop="name"]');
     var imgEl = doc.querySelector('[itemprop="image"]');
     var img = imgEl ? (imgEl.getAttribute('content') || imgEl.getAttribute('src')) : null;
-
     var parts = [];
     if (ing.length) parts.push('<h2>Ingredienser</h2><ul>' + ing.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>');
     if (steps.length) parts.push('<h2>Gör så här</h2><ol>' + steps.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ol>');
@@ -1282,6 +1553,25 @@ a{color:var(--brand-2);text-decoration:none}
     return { name: t ? clean(t.content) : '', image: im ? im.content : null, description: d ? clean(d.content) : '' };
   }
 
+  /* ---------- "Skriv ut recept"-länk ---------- */
+
+  function findPrintUrl(doc, baseUrl) {
+    var sels = [
+      'a.wprm-recipe-print', 'a[href*="wprm_print"]',
+      'a.tasty-recipes-print-button', 'a[href*="tasty-recipes"][href*="print"]',
+      'a.mv-create-print', 'a[href*="create-print"]',
+      'a[href*="/print/"]', 'a[href*="print=1"]', 'a[rel~="print"]'
+    ];
+    for (var i = 0; i < sels.length; i++) {
+      var a = doc.querySelector(sels[i]);
+      if (a) {
+        var h = a.getAttribute('href');
+        if (h && /print/i.test(h)) return absUrl(decodeEntities(h), baseUrl);
+      }
+    }
+    return null;
+  }
+
   /* ---------- Pinterest ---------- */
 
   function isPinterest(url) {
@@ -1291,60 +1581,72 @@ a{color:var(--brand-2);text-decoration:none}
   function findPinterestSource(html) {
     var m = html.match(/property=["']og:see_also["'][^>]*content=["']([^"']+)["']/i);
     if (m && !/pinterest\.|pinimg\./i.test(m[1])) return decodeEntities(m[1]);
+    var keys = ['link', 'tracked_link', 'clickthrough', 'url'];
+    for (var k = 0; k < keys.length; k++) {
+      var re = new RegExp('"' + keys[k] + '":"(https?:\\\\?/\\\\?/[^"]+)"', 'g'), mm;
+      while ((mm = re.exec(html))) {
+        var u = mm[1].replace(/\\\//g, '/').replace(/\\u002F/gi, '/');
+        if (!/pinterest\.|pinimg\.|pin\.it/i.test(u)) return u;
+      }
+    }
+    return null;
+  }
 
-    var re = /"link":"(https?:\\?\/\\?\/[^"]+)"/g, mm;
-    while ((mm = re.exec(html))) {
-      var u = mm[1].replace(/\\\//g, '/').replace(/\\u002F/gi, '/');
-      if (!/pinterest\.|pinimg\.|pin\.it/i.test(u)) return u;
-    }
-    var re2 = /"url":"(https?:\\?\/\\?\/(?!www\.pinterest|i\.pinimg)[^"]+)"/g, m2;
-    while ((m2 = re2.exec(html))) {
-      var u2 = m2[1].replace(/\\\//g, '/').replace(/\\u002F/gi, '/');
-      if (!/pinterest\.|pinimg\.|pin\.it/i.test(u2)) return u2;
-    }
+  /* ---------- Tolkning av en sida ---------- */
+
+  function parseHtml(html) { return new DOMParser().parseFromString(html, 'text/html'); }
+
+  function parseDoc(doc) {
+    var recipe = parseJsonLd(doc);
+    if (recipe) { var h = structuredToHtml(recipe); if (h) return { title: clean(recipe.name || ''), html: h, image: pickImage(recipe.image) }; }
+    var plug = parsePluginMarkup(doc);
+    if (plug && plug.html) return { title: plug.name, html: plug.html, image: plug.image };
+    var micro = parseMicrodata(doc);
+    if (micro && micro.html) return { title: micro.name, html: micro.html, image: micro.image };
     return null;
   }
 
   /* ---------- Publikt API ---------- */
 
-  function parseHtml(html) {
-    return new DOMParser().parseFromString(html, 'text/html');
-  }
-
   var WebImport = {
     /** Importera från URL. Returnerar { title, html, image }. */
-    fromUrl: function (url, _depth) {
+    fromUrl: function (url, _depth, _flags) {
       url = (url || '').trim();
       if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
       _depth = _depth || 0;
+      _flags = _flags || {};
       var pin = isPinterest(url);
 
       return fetchRawHtml(url).then(function (html) {
         // Pinterest → följ till källreceptet
-        if (pin && _depth < 1) {
+        if (pin && _depth < 2) {
           var src = findPinterestSource(html);
-          if (src) return WebImport.fromUrl(src, _depth + 1);
+          if (src) return WebImport.fromUrl(src, _depth + 1, _flags);
         }
 
         var doc = parseHtml(html);
 
-        // 1) JSON-LD
-        var recipe = parseJsonLd(doc);
-        if (recipe) {
-          var html1 = structuredToHtml(recipe);
-          if (html1) return { title: clean(recipe.name || ''), html: html1, image: pickImage(recipe.image) };
+        // Försök först den reklamfria "skriv ut"-versionen
+        var pre = Promise.resolve(null);
+        if (!_flags.skipPrint && _depth < 3) {
+          var printUrl = findPrintUrl(doc, url);
+          if (printUrl && printUrl !== url) {
+            pre = WebImport.fromUrl(printUrl, _depth + 1, { skipPrint: true })
+              .then(function (r) { return (r && r.html) ? r : null; })
+              .catch(function () { return null; });
+          }
         }
-        // 2) Microdata
-        var micro = parseMicrodata(doc);
-        if (micro && micro.html) return { title: micro.name, html: micro.html, image: micro.image };
-        // 3) OpenGraph-beskrivning
-        var og = parseOG(doc);
-        if (og && og.description) {
-          return { title: og.name, html: structureToHtmlOnly(og.description), image: og.image };
-        }
-        throw new Error('no-structured-data');
+
+        return pre.then(function (printRes) {
+          if (printRes) return printRes;
+          var res = parseDoc(doc);
+          if (res) return res;
+          var og = parseOG(doc);
+          if (og && og.description) return { title: og.name, html: structureToHtmlOnly(og.description), image: og.image };
+          throw new Error('no-structured-data');
+        });
       }).catch(function () {
-        // 4) Läsbar text via r.jina.ai → strukturera
+        // Sista utväg: läsbar text via r.jina.ai
         return fetchReadable(url).then(function (txt) {
           var parsed = structureFull(cleanMarkdown(txt));
           return { title: parsed.title, html: parsed.html, image: null };
@@ -1474,7 +1776,7 @@ a{color:var(--brand-2);text-decoration:none}
     vegetariskt: 'Vegetariskt'
   };
 
-  var APP_VERSION = '1.2.0';   // visas under "Om appen"
+  var APP_VERSION = '1.4.0';   // visas under "Om appen"
 
   var $ = function (id) { return document.getElementById(id); };
   var qa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
@@ -1721,33 +2023,48 @@ a{color:var(--brand-2);text-decoration:none}
     }).catch(function () { clearBusy(); toast('Kunde inte läsa bilden.'); });
   }
 
-  // Skanna en eller flera bilder (t.ex. flera sidor av samma recept).
-  // Bilderna läggs i galleriet och texten läses i ordning, struktureras och infogas.
-  function scanPhotos(files) {
-    var arr = Array.prototype.slice.call(files);
-    if (!arr.length) return;
-    var total = arr.length;
+  // Rensa typiskt OCR-brus från tidningssidor (sidnummer, tidningsnamn, ensamtecken).
+  function cleanScanText(t) {
+    if (!t) return '';
+    return t.split(/\r?\n/).map(function (l) { return l.replace(/^\s+|\s+$/g, ''); })
+      .filter(function (l) {
+        if (!l) return false;
+        if (/^allers\b/i.test(l)) return false;                 // tidningsnamn
+        if (/^\d{1,3}\s*[\/.]\s*\d{1,3}$/.test(l)) return false; // sidreferens "24/26"
+        if (l.length <= 1) return false;                         // ensamma tecken
+        return true;
+      }).join('\n');
+  }
+
+  // Kör OCR på en lista data-URL:er (förbättrade), städa, strukturera och infoga.
+  function ocrSourcesToEditor(sources) {
+    var total = sources.length;
     var texts = [];
 
     function step(idx) {
       if (idx >= total) return Promise.resolve();
       var label = total > 1 ? ('Bild ' + (idx + 1) + '/' + total + ' — ') : '';
-      setBusy(label + 'läser texten… 0%');
-      return fileToImage(arr[idx], 2000).then(function (url) {
-        state.images.push(url); renderGallery();
-        return OCR.recognize(url, function (p) {
+      setBusy(label + 'förbättrar bild…');
+      var prep = global.ImagePrep ? ImagePrep.process(sources[idx]) : Promise.resolve(sources[idx]);
+      return prep.then(function (prepped) {
+        setBusy(label + 'läser texten… 0%');
+        return OCR.recognize(prepped, function (p) {
           $('busyText').textContent = label + 'läser texten… ' + Math.round(p * 100) + '%';
         });
       }).then(function (text) {
-        if (text) texts.push(text);
+        var c = cleanScanText(text);
+        if (c) texts.push(c);
         return step(idx + 1);
       });
     }
 
-    step(0).then(function () {
+    return step(0).then(function () {
       clearBusy();
       var raw = texts.join('\n\n');
-      if (!raw.trim()) { toast('Ingen text kunde tolkas. Försök med en skarpare bild.'); return; }
+      if (!raw.trim()) {
+        toast('Ingen text kunde tolkas. Fota närmare och rakare, med jämnt ljus — och rama in bara receptet.');
+        return;
+      }
       var res = structureText(raw);
       if (!$('recipeTitle').value.trim() && res.title) $('recipeTitle').value = res.title;
       if (res.html) Editor.appendHtml(res.html);
@@ -1755,6 +2072,40 @@ a{color:var(--brand-2);text-decoration:none}
       toast(total > 1
         ? (total + ' bilder tolkade och strukturerade — granska i editorn.')
         : 'Texten tolkad och strukturerad — granska i editorn.');
+    }).catch(function (err) {
+      clearBusy(); toast(err && err.message ? err.message : 'Skanningen misslyckades.');
+    });
+  }
+
+  // Skanna recept. En bild → låt användaren rama in receptet (beskärning) först,
+  // vilket är avgörande för tidningssidor med flera spalter. Flera bilder → tolka var och en.
+  function scanPhotos(files) {
+    var arr = Array.prototype.slice.call(files);
+    if (!arr.length) return;
+
+    if (arr.length === 1) {
+      setBusy('Förbereder bild…');
+      fileToImage(arr[0], 2400).then(function (full) {
+        state.images.push(full); renderGallery();      // behåll originalfotot i galleriet
+        clearBusy();
+        if (global.Cropper) {
+          return Cropper.open(full).then(function (region) {
+            if (region == null) return;                 // användaren avbröt
+            return ocrSourcesToEditor([region]);
+          });
+        }
+        return ocrSourcesToEditor([full]);
+      }).catch(function (err) {
+        clearBusy(); toast(err && err.message ? err.message : 'Skanningen misslyckades.');
+      });
+      return;
+    }
+
+    setBusy('Förbereder bilder…');
+    Promise.all(arr.map(function (f) { return fileToImage(f, 2400); })).then(function (urls) {
+      urls.forEach(function (u) { state.images.push(u); });
+      renderGallery(); clearBusy();
+      return ocrSourcesToEditor(urls);
     }).catch(function (err) {
       clearBusy(); toast(err && err.message ? err.message : 'Skanningen misslyckades.');
     });
