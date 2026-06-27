@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="dark">
 <title>Lingonbergets kulinariska samling</title>
 <!-- ============================================================= -->
-<!--  LINGONBERGET v1.8.0 — SJÄLVSTÄNDIG VERSION              -->
+<!--  LINGONBERGET v1.8.1 — SJÄLVSTÄNDIG VERSION              -->
 <!--  All CSS och JavaScript är inbakad i denna enda fil.          -->
 <!--  DETTA ÄR DEN NYA FILEN som ska ligga som index.html.         -->
 <!-- ============================================================= -->
@@ -1356,9 +1356,17 @@ a{color:var(--brand-2);text-decoration:none}
 
   var PROXIES = [
     function (u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
+    function (u) { return 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(u); },
     function (u) { return 'https://corsproxy.io/?url=' + encodeURIComponent(u); },
-    function (u) { return 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(u); }
+    function (u) { return 'https://thingproxy.freeboard.io/fetch/' + u; }
   ];
+
+  // En xlsx är en ZIP-fil → börjar med "PK" (0x50 0x4B). Så avvisar vi HTML-felsidor.
+  function looksLikeXlsx(ab) {
+    if (!ab || ab.byteLength < 5000) return false;
+    var b = new Uint8Array(ab, 0, 2);
+    return b[0] === 0x50 && b[1] === 0x4B;
+  }
 
   function loadScript(src) {
     return new Promise(function (resolve, reject) {
@@ -1379,7 +1387,7 @@ a{color:var(--brand-2);text-decoration:none}
         if (!r.ok) throw new Error('status ' + r.status);
         return r.arrayBuffer();
       }).then(function (ab) {
-        if (!ab || ab.byteLength < 10000) throw new Error('för liten fil');
+        if (!looksLikeXlsx(ab)) throw new Error('ej Excel-fil (fick troligen en felsida)');
         return ab;
       }).catch(function () { return tryNext(); });
     }
@@ -1468,10 +1476,20 @@ a{color:var(--brand-2);text-decoration:none}
   }
 
   var WineStore = {
-    /** Returnerar { wines, updatedAt } ur cachen (eller tom). */
+    /** Returnerar { wines, updatedAt } ur cachen, annars förladdad wines.json i repot. */
     cached: function () {
       return Store.kvGet(CACHE_KEY).then(function (data) {
-        return data && data.wines ? data : { wines: [], updatedAt: null };
+        if (data && data.wines && data.wines.length) return data;
+        // Reserv: förladdad wines.json bredvid index.html
+        return fetch('wines.json', { cache: 'no-store' }).then(function (r) {
+          if (!r.ok) throw new Error('ingen wines.json');
+          return r.json();
+        }).then(function (j) {
+          var wines = Array.isArray(j) ? j : (j.wines || []);
+          var payload = { wines: wines, updatedAt: (j && j.updatedAt) || null };
+          if (wines.length) { Store.kvSet(CACHE_KEY, payload); }
+          return payload;
+        }).catch(function () { return { wines: [], updatedAt: null }; });
       }).catch(function () { return { wines: [], updatedAt: null }; });
     },
 
@@ -1485,7 +1503,9 @@ a{color:var(--brand-2);text-decoration:none}
         return fetchArrayBuffer(XLSX_URL);
       }).then(function (ab) {
         status('Tolkar sortimentet…');
-        var wines = parseWorkbook(ab);
+        var wines;
+        try { wines = parseWorkbook(ab); }
+        catch (e) { throw new Error(e && e.message ? e.message : 'Kunde inte tolka prislistan.'); }
         if (!wines.length) throw new Error('Inga viner kunde läsas ur prislistan.');
         var payload = { wines: wines, updatedAt: new Date().toISOString() };
         return Store.kvSet(CACHE_KEY, payload).then(function () { return payload; });
@@ -2505,7 +2525,7 @@ a{color:var(--brand-2);text-decoration:none}
     vegetariskt: 'Vegetariskt'
   };
 
-  var APP_VERSION = '1.8.0';   // visas under "Om appen"
+  var APP_VERSION = '1.8.1';   // visas under "Om appen"
 
   var $ = function (id) { return document.getElementById(id); };
   var qa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
