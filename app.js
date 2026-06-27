@@ -1,5 +1,5 @@
 /* app.js — huvudlogik: vyer, kategorier, CRUD, sök/filter och import.
-   Allt sker i en sida (inga externa länkar — fristående app). /
+   Allt sker i en sida (inga externa länkar — fristående app). */
 (function (global) {
   'use strict';
 
@@ -11,7 +11,7 @@
     vegetariskt: 'Vegetariskt'
   };
 
-  var APP_VERSION = '1.1.0';   // visas under "Om appen"
+  var APP_VERSION = '1.4.1';   // visas under "Om appen"
 
   var $ = function (id) { return document.getElementById(id); };
   var qa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
@@ -27,11 +27,11 @@
     isNew: false          // true för nytt, manuellt inskrivet recept utan bild
   };
 
-  / ---------- Hjälpfunktioner ---------- /
+  /* ---------- Hjälpfunktioner ---------- */
 
   function escapeHtml(s) {
     return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
-      return ({ '&': '&', '<': '<', '>': '>', '"': '"' })[c];
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c];
     });
   }
 
@@ -86,7 +86,7 @@
     });
   }
 
-  / ---------- Vy-hantering ---------- /
+  /* ---------- Vy-hantering ---------- */
 
   function showView(name) {
     state.view = name;
@@ -99,7 +99,7 @@
     window.scrollTo(0, 0);
   }
 
-  / ---------- Samling (lista) ---------- /
+  /* ---------- Samling (lista) ---------- */
 
   function renderCollection() {
     Store.all().then(function (list) {
@@ -141,7 +141,7 @@
     });
   }
 
-  / ---------- Läsvy ---------- /
+  /* ---------- Läsvy ---------- */
 
   function openReader(id) {
     Store.get(id).then(function (r) {
@@ -163,7 +163,7 @@
     });
   }
 
-  / ---------- Redigeringsvy ---------- /
+  /* ---------- Redigeringsvy ---------- */
 
   function openEditor(recipe) {
     var r = recipe || { id: null, title: '', category: 'huvudratt', images: [], bodyHtml: '', source: '' };
@@ -241,7 +241,7 @@
     return true;
   }
 
-  / ---------- Import: bilder, OCR, PDF, webb, klistra in ---------- /
+  /* ---------- Import: bilder, OCR, PDF, webb, klistra in ---------- */
 
   function handleImageFiles(files) {
     var arr = Array.prototype.slice.call(files);
@@ -258,33 +258,48 @@
     }).catch(function () { clearBusy(); toast('Kunde inte läsa bilden.'); });
   }
 
-  // Skanna en eller flera bilder (t.ex. flera sidor av samma recept).
-  // Bilderna läggs i galleriet och texten läses i ordning, struktureras och infogas.
-  function scanPhotos(files) {
-    var arr = Array.prototype.slice.call(files);
-    if (!arr.length) return;
-    var total = arr.length;
+  // Rensa typiskt OCR-brus från tidningssidor (sidnummer, tidningsnamn, ensamtecken).
+  function cleanScanText(t) {
+    if (!t) return '';
+    return t.split(/\r?\n/).map(function (l) { return l.replace(/^\s+|\s+$/g, ''); })
+      .filter(function (l) {
+        if (!l) return false;
+        if (/^allers\b/i.test(l)) return false;                 // tidningsnamn
+        if (/^\d{1,3}\s*[\/.]\s*\d{1,3}$/.test(l)) return false; // sidreferens "24/26"
+        if (l.length <= 1) return false;                         // ensamma tecken
+        return true;
+      }).join('\n');
+  }
+
+  // Kör OCR på en lista data-URL:er (förbättrade), städa, strukturera och infoga.
+  function ocrSourcesToEditor(sources) {
+    var total = sources.length;
     var texts = [];
 
     function step(idx) {
       if (idx >= total) return Promise.resolve();
       var label = total > 1 ? ('Bild ' + (idx + 1) + '/' + total + ' — ') : '';
-      setBusy(label + 'läser texten… 0%');
-      return fileToImage(arr[idx], 2000).then(function (url) {
-        state.images.push(url); renderGallery();
-        return OCR.recognize(url, function (p) {
+      setBusy(label + 'förbättrar bild…');
+      var prep = global.ImagePrep ? ImagePrep.process(sources[idx]) : Promise.resolve(sources[idx]);
+      return prep.then(function (prepped) {
+        setBusy(label + 'läser texten… 0%');
+        return OCR.recognize(prepped, function (p) {
           $('busyText').textContent = label + 'läser texten… ' + Math.round(p * 100) + '%';
         });
       }).then(function (text) {
-        if (text) texts.push(text);
+        var c = cleanScanText(text);
+        if (c) texts.push(c);
         return step(idx + 1);
       });
     }
 
-    step(0).then(function () {
+    return step(0).then(function () {
       clearBusy();
       var raw = texts.join('\n\n');
-      if (!raw.trim()) { toast('Ingen text kunde tolkas. Försök med en skarpare bild.'); return; }
+      if (!raw.trim()) {
+        toast('Ingen text kunde tolkas. Fota närmare och rakare, med jämnt ljus — och rama in bara receptet.');
+        return;
+      }
       var res = structureText(raw);
       if (!$('recipeTitle').value.trim() && res.title) $('recipeTitle').value = res.title;
       if (res.html) Editor.appendHtml(res.html);
@@ -292,6 +307,40 @@
       toast(total > 1
         ? (total + ' bilder tolkade och strukturerade — granska i editorn.')
         : 'Texten tolkad och strukturerad — granska i editorn.');
+    }).catch(function (err) {
+      clearBusy(); toast(err && err.message ? err.message : 'Skanningen misslyckades.');
+    });
+  }
+
+  // Skanna recept. En bild → låt användaren rama in receptet (beskärning) först,
+  // vilket är avgörande för tidningssidor med flera spalter. Flera bilder → tolka var och en.
+  function scanPhotos(files) {
+    var arr = Array.prototype.slice.call(files);
+    if (!arr.length) return;
+
+    if (arr.length === 1) {
+      setBusy('Förbereder bild…');
+      fileToImage(arr[0], 2400).then(function (full) {
+        state.images.push(full); renderGallery();      // behåll originalfotot i galleriet
+        clearBusy();
+        if (global.Cropper) {
+          return Cropper.open(full).then(function (region) {
+            if (region == null) return;                 // användaren avbröt
+            return ocrSourcesToEditor([region]);
+          });
+        }
+        return ocrSourcesToEditor([full]);
+      }).catch(function (err) {
+        clearBusy(); toast(err && err.message ? err.message : 'Skanningen misslyckades.');
+      });
+      return;
+    }
+
+    setBusy('Förbereder bilder…');
+    Promise.all(arr.map(function (f) { return fileToImage(f, 2400); })).then(function (urls) {
+      urls.forEach(function (u) { state.images.push(u); });
+      renderGallery(); clearBusy();
+      return ocrSourcesToEditor(urls);
     }).catch(function (err) {
       clearBusy(); toast(err && err.message ? err.message : 'Skanningen misslyckades.');
     });
@@ -309,9 +358,10 @@
         if (res.title) $('recipeTitle').value = res.title;
         else if (structured.title) $('recipeTitle').value = structured.title;
       }
-      if (structured.html) { Editor.appendHtml(structured.html); toast('PDF importerad och strukturerad — granska i editorn.'); }
-      else if (res.text) { Editor.appendText(res.text); toast('PDF importerad — granska i editorn.'); }
-      else toast('PDF:en innehöll ingen läsbar text (kan vara en skannad bild).');
+      var note = res.ocr ? ' (tolkad som skannad bild)' : '';
+      if (structured.html) { Editor.appendHtml(structured.html); toast('PDF importerad och strukturerad' + note + ' — granska i editorn.'); }
+      else if (res.text) { Editor.appendText(res.text); toast('PDF importerad' + note + ' — granska i editorn.'); }
+      else toast('Kunde inte läsa text ur PDF:en. Prova "Skanna recept" med ett foto i stället.');
     }).catch(function (err) {
       clearBusy(); toast(err && err.message ? err.message : 'Kunde inte läsa PDF:en.');
     });
@@ -342,7 +392,7 @@
     toast('Texten infogad och strukturerad — granska i editorn.');
   }
 
-  / ---------- iCloud: spara/öppna ---------- /
+  /* ---------- iCloud: spara/öppna ---------- */
 
   function saveToICloud(recipe) {
     setBusy('Förbereder fil…');
@@ -377,12 +427,12 @@
     }).catch(function () { clearBusy(); toast('Export misslyckades.'); });
   }
 
-  / ---------- Meny ---------- /
+  /* ---------- Meny ---------- */
 
   function openMenu() { $('menu').hidden = false; $('menuBackdrop').hidden = false; }
   function closeMenu() { $('menu').hidden = true; $('menuBackdrop').hidden = true; }
 
-  / ---------- Händelser ---------- /
+  /* ---------- Händelser ---------- */
 
   function onAction(action) {
     switch (action) {
@@ -489,7 +539,7 @@
     });
   }
 
-  / ---------- Start ---------- */
+  /* ---------- Start ---------- */
 
   function init() {
     Editor.init($('editor'), $('editorToolbar'));
