@@ -1,5 +1,5 @@
 /* app.js — huvudlogik: vyer, kategorier, CRUD, sök/filter och import.
-   Allt sker i en sida (inga externa länkar — fristående app). */
+   Allt sker i en sida (inga externa länkar — fristående app). /
 (function (global) {
   'use strict';
 
@@ -11,6 +11,8 @@
     vegetariskt: 'Vegetariskt'
   };
 
+  var APP_VERSION = '1.1.0';   // visas under "Om appen"
+
   var $ = function (id) { return document.getElementById(id); };
   var qa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
 
@@ -21,14 +23,15 @@
     editing: null,      // recept som redigeras
     images: [],         // bildgalleri (data-URL) för aktuellt recept
     category: 'huvudratt',
-    imgIntent: 'gallery' // 'gallery' | 'scan'
+    imgIntent: 'gallery', // 'gallery' | 'scan'
+    isNew: false          // true för nytt, manuellt inskrivet recept utan bild
   };
 
-  /* ---------- Hjälpfunktioner ---------- */
+  / ---------- Hjälpfunktioner ---------- /
 
   function escapeHtml(s) {
     return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
-      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c];
+      return ({ '&': '&', '<': '<', '>': '>', '"': '"' })[c];
     });
   }
 
@@ -36,6 +39,12 @@
     var d = document.createElement('div');
     d.innerHTML = html || '';
     return (d.textContent || '').replace(/\s+/g, ' ').trim();
+  }
+
+  // Strukturera rå text till HTML via RecipeFormat (faller tillbaka på enkel text).
+  function structureText(text) {
+    if (global.RecipeFormat && text) return global.RecipeFormat.structure(text);
+    return { title: '', html: '' };
   }
 
   function fmtDate(iso) {
@@ -77,19 +86,20 @@
     });
   }
 
-  /* ---------- Vy-hantering ---------- */
+  / ---------- Vy-hantering ---------- /
 
   function showView(name) {
     state.view = name;
     $('view-collection').hidden = name !== 'collection';
     $('view-read').hidden = name !== 'read';
     $('view-edit').hidden = name !== 'edit';
+    $('view-help').hidden = name !== 'help';
     $('backBtn').hidden = name === 'collection';
     $('fab').hidden = name !== 'collection';
     window.scrollTo(0, 0);
   }
 
-  /* ---------- Samling (lista) ---------- */
+  / ---------- Samling (lista) ---------- /
 
   function renderCollection() {
     Store.all().then(function (list) {
@@ -131,7 +141,7 @@
     });
   }
 
-  /* ---------- Läsvy ---------- */
+  / ---------- Läsvy ---------- /
 
   function openReader(id) {
     Store.get(id).then(function (r) {
@@ -153,13 +163,14 @@
     });
   }
 
-  /* ---------- Redigeringsvy ---------- */
+  / ---------- Redigeringsvy ---------- /
 
   function openEditor(recipe) {
     var r = recipe || { id: null, title: '', category: 'huvudratt', images: [], bodyHtml: '', source: '' };
     state.editing = r;
     state.images = (r.images || []).slice();
     state.category = r.category || 'huvudratt';
+    state.isNew = !(recipe && recipe.id);   // nytt recept om inget id finns
 
     $('recipeTitle').value = r.title || '';
     Editor.setHtml(r.bodyHtml || '');
@@ -178,6 +189,18 @@
   function renderGallery() {
     var g = $('gallery');
     g.innerHTML = '';
+
+    // Tomt galleri på ett nytt recept → tydlig uppmaning att lägga till bild.
+    if (!state.images.length) {
+      var prompt = document.createElement('button');
+      prompt.type = 'button';
+      prompt.className = 'gallery-add';
+      prompt.setAttribute('data-action', 'add-photo');
+      prompt.innerHTML = '<span aria-hidden="true">🫐</span> Lägg till en bild av rätten';
+      g.appendChild(prompt);
+      return;
+    }
+
     state.images.forEach(function (src, i) {
       var d = document.createElement('div');
       d.className = 'thumb';
@@ -199,13 +222,26 @@
     var r = gatherRecipe();
     return Store.put(r).then(function (saved) {
       state.editing = saved;
+      state.isNew = false;           // sparat — fråga inte om bild igen
       toast('Receptet sparat.');
       renderCollection();
       return saved;
     });
   }
 
-  /* ---------- Import: bilder, OCR, PDF, webb, klistra in ---------- */
+  // Fråga efter bild för nya, manuellt inskrivna recept utan foto.
+  // Returnerar true om sparandet ska fortsätta, false om vi öppnar bildväljaren.
+  function ensureImageBeforeSave() {
+    if (!state.isNew || state.images.length) return true;
+    var add = global.confirm(
+      'Det här receptet har ingen bild ännu.\n\n' +
+      'Tryck OK för att lägga till ett foto av rätten, eller Avbryt för att spara utan bild.'
+    );
+    if (add) { state.imgIntent = 'gallery'; $('filePhoto').value = ''; $('filePhoto').click(); return false; }
+    return true;
+  }
+
+  / ---------- Import: bilder, OCR, PDF, webb, klistra in ---------- /
 
   function handleImageFiles(files) {
     var arr = Array.prototype.slice.call(files);
@@ -222,17 +258,40 @@
     }).catch(function () { clearBusy(); toast('Kunde inte läsa bilden.'); });
   }
 
-  function scanPhoto(file) {
-    setBusy('Läser texten… 0%');
-    fileToImage(file, 2000).then(function (url) {
-      state.images.push(url); renderGallery();
-      return OCR.recognize(url, function (p) {
-        $('busyText').textContent = 'Läser texten… ' + Math.round(p * 100) + '%';
+  // Skanna en eller flera bilder (t.ex. flera sidor av samma recept).
+  // Bilderna läggs i galleriet och texten läses i ordning, struktureras och infogas.
+  function scanPhotos(files) {
+    var arr = Array.prototype.slice.call(files);
+    if (!arr.length) return;
+    var total = arr.length;
+    var texts = [];
+
+    function step(idx) {
+      if (idx >= total) return Promise.resolve();
+      var label = total > 1 ? ('Bild ' + (idx + 1) + '/' + total + ' — ') : '';
+      setBusy(label + 'läser texten… 0%');
+      return fileToImage(arr[idx], 2000).then(function (url) {
+        state.images.push(url); renderGallery();
+        return OCR.recognize(url, function (p) {
+          $('busyText').textContent = label + 'läser texten… ' + Math.round(p * 100) + '%';
+        });
+      }).then(function (text) {
+        if (text) texts.push(text);
+        return step(idx + 1);
       });
-    }).then(function (text) {
+    }
+
+    step(0).then(function () {
       clearBusy();
-      if (text) { Editor.appendText(text); toast('Texten tolkad — granska och rätta i editorn.'); }
-      else toast('Ingen text kunde tolkas. Försök med en skarpare bild.');
+      var raw = texts.join('\n\n');
+      if (!raw.trim()) { toast('Ingen text kunde tolkas. Försök med en skarpare bild.'); return; }
+      var res = structureText(raw);
+      if (!$('recipeTitle').value.trim() && res.title) $('recipeTitle').value = res.title;
+      if (res.html) Editor.appendHtml(res.html);
+      else Editor.appendText(raw);
+      toast(total > 1
+        ? (total + ' bilder tolkade och strukturerade — granska i editorn.')
+        : 'Texten tolkad och strukturerad — granska i editorn.');
     }).catch(function (err) {
       clearBusy(); toast(err && err.message ? err.message : 'Skanningen misslyckades.');
     });
@@ -245,8 +304,13 @@
     }).then(function (res) {
       clearBusy();
       if (res.thumbnail) { state.images.push(res.thumbnail); renderGallery(); }
-      if (!$('recipeTitle').value.trim() && res.title) $('recipeTitle').value = res.title;
-      if (res.text) { Editor.appendText(res.text); toast('PDF importerad — granska i editorn.'); }
+      var structured = structureText(res.text || '');
+      if (!$('recipeTitle').value.trim()) {
+        if (res.title) $('recipeTitle').value = res.title;
+        else if (structured.title) $('recipeTitle').value = structured.title;
+      }
+      if (structured.html) { Editor.appendHtml(structured.html); toast('PDF importerad och strukturerad — granska i editorn.'); }
+      else if (res.text) { Editor.appendText(res.text); toast('PDF importerad — granska i editorn.'); }
       else toast('PDF:en innehöll ingen läsbar text (kan vara en skannad bild).');
     }).catch(function (err) {
       clearBusy(); toast(err && err.message ? err.message : 'Kunde inte läsa PDF:en.');
@@ -275,10 +339,10 @@
     var res = WebImport.fromText(text);
     if (!$('recipeTitle').value.trim() && res.title) $('recipeTitle').value = res.title;
     Editor.appendHtml(res.html);
-    toast('Texten infogad — granska i editorn.');
+    toast('Texten infogad och strukturerad — granska i editorn.');
   }
 
-  /* ---------- iCloud: spara/öppna ---------- */
+  / ---------- iCloud: spara/öppna ---------- /
 
   function saveToICloud(recipe) {
     setBusy('Förbereder fil…');
@@ -313,18 +377,19 @@
     }).catch(function () { clearBusy(); toast('Export misslyckades.'); });
   }
 
-  /* ---------- Meny ---------- */
+  / ---------- Meny ---------- /
 
   function openMenu() { $('menu').hidden = false; $('menuBackdrop').hidden = false; }
   function closeMenu() { $('menu').hidden = true; $('menuBackdrop').hidden = true; }
 
-  /* ---------- Händelser ---------- */
+  / ---------- Händelser ---------- /
 
   function onAction(action) {
     switch (action) {
       case 'new': closeMenu(); openEditor(null); break;
       case 'edit': openEditor(state.editing); break;
       case 'save':
+        if (!ensureImageBeforeSave()) break;
         saveRecipe().then(function (r) { openReader(r.id); });
         break;
       case 'delete':
@@ -337,12 +402,13 @@
         } else { showView('collection'); }
         break;
       case 'save-icloud-edit':
+        if (!ensureImageBeforeSave()) break;
         saveRecipe().then(function (r) { saveToICloud(r); });
         break;
       case 'save-icloud-read':
         if (state.editing) saveToICloud(state.editing);
         break;
-      case 'add-photo': state.imgIntent = 'gallery'; $('filePhoto').click(); break;
+      case 'add-photo': state.imgIntent = 'gallery'; $('filePhoto').value = ''; $('filePhoto').click(); break;
       case 'scan': state.imgIntent = 'scan'; $('filePhoto').value = ''; $('filePhoto').click(); break;
       case 'import-pdf': $('filePdf').click(); break;
       case 'import-url': importUrl(); break;
@@ -350,16 +416,18 @@
       case 'open-icloud': closeMenu(); $('fileRecipe').click(); break;
       case 'export-all': closeMenu(); exportAll(); break;
       case 'import-all': closeMenu(); $('fileCollection').click(); break;
-      case 'about': closeMenu(); showAbout(); break;
+      case 'help': closeMenu(); showHelp(); break;
+      case 'about': closeMenu(); showHelp('about'); break;
     }
   }
 
-  function showAbout() {
-    alert('Lingonbergets kulinariska samling\n\n' +
-      'En fristående receptapp: fotografera handskrivna recept (OCR), infoga bilder, ' +
-      'importera PDF eller länk (t.ex. köket.se), och redigera fritt i texteditorn.\n\n' +
-      'Recept sparas lokalt på enheten och kan sparas till iCloud Drive via "Spara till iCloud". ' +
-      'Lägg till appen på hemskärmen för helskärmsläge.');
+  // "Så funkar appen" + "Om appen" (samma sida; 'about' hoppar till om-avsnittet).
+  function showHelp(anchor) {
+    showView('help');
+    if (anchor === 'about') {
+      var a = $('aboutSection');
+      if (a && a.scrollIntoView) setTimeout(function () { a.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60);
+    }
   }
 
   function bind() {
@@ -406,7 +474,7 @@
     // Filinmatningar
     $('filePhoto').addEventListener('change', function (e) {
       var files = e.target.files;
-      if (state.imgIntent === 'scan' && files[0]) scanPhoto(files[0]);
+      if (state.imgIntent === 'scan' && files.length) scanPhotos(files);
       else if (files.length) addPhotos(files);
       e.target.value = ''; state.imgIntent = 'gallery';
     });
@@ -421,11 +489,14 @@
     });
   }
 
-  /* ---------- Start ---------- */
+  / ---------- Start ---------- */
 
   function init() {
     Editor.init($('editor'), $('editorToolbar'));
     bind();
+
+    // Fyll i versionsnummer där det visas (meny + Om appen)
+    qa('.app-version').forEach(function (el) { el.textContent = APP_VERSION; });
 
     // återställ senaste filter
     var s = Store.getSettings();
