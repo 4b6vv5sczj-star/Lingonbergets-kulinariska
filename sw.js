@@ -1,22 +1,22 @@
 /* sw.js — service worker: cachar app-skalet så appen startar offline.
    OCR-/PDF-biblioteken laddas från CDN och cachas av webbläsaren efter första användningen. */
-var CACHE = 'lingonberget-v1';
+var CACHE = 'lingonberget-v2';
 var SHELL = [
   './',
   './index.html',
-  './css/app.css',
-  './js/store.js',
-  './js/editor.js',
-  './js/ocr.js',
-  './js/pdfimport.js',
-  './js/webimport.js',
-  './js/icloud.js',
-  './js/app.js',
+  './app.css',
+  './store.js',
+  './editor.js',
+  './ocr.js',
+  './pdfimport.js',
+  './webimport.js',
+  './icloud.js',
+  './app.js',
   './manifest.webmanifest',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/apple-touch-icon.png',
-  './icons/maskable-512.png'
+  './icon-192.png',
+  './icon-512.png',
+  './apple-touch-icon.png',
+  './maskable-512.png'
 ];
 
 self.addEventListener('install', function (e) {
