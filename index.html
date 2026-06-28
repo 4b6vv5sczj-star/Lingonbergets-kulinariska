@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="dark">
 <title>Lingonbergets kulinariska samling</title>
 <!-- ============================================================= -->
-<!--  LINGONBERGET v1.10.0 — SJÄLVSTÄNDIG VERSION              -->
+<!--  LINGONBERGET v1.11.0 — SJÄLVSTÄNDIG VERSION              -->
 <!--  All CSS och JavaScript är inbakad i denna enda fil.          -->
 <!--  DETTA ÄR DEN NYA FILEN som ska ligga som index.html.         -->
 <!-- ============================================================= -->
@@ -482,6 +482,22 @@ a{color:var(--brand-2);text-decoration:none}
   background:var(--surface-3);border:1px solid var(--line-2);color:var(--ink)}
 .ck-add:active{background:var(--brand);border-color:var(--brand)}
 
+/* ===== Tekniker ===== */
+.tech-row{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:0 0 14px}
+.tech-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint)}
+.tech-chip{padding:6px 12px;border-radius:999px;font-size:13px;background:var(--surface-2);
+  border:1px solid var(--brand);color:var(--ink)}
+.tech-chip:active{background:var(--brand);color:#fff}
+.tech-desc{font-family:var(--serif);font-size:16px;line-height:1.65;margin:4px 0 14px}
+.tech-list{display:flex;flex-direction:column;gap:8px}
+.tech-acc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:2px 14px}
+.tech-acc summary{cursor:pointer;padding:12px 0;font-weight:600;font-family:var(--serif);font-size:15.5px;
+  list-style:none;display:flex;justify-content:space-between;align-items:center}
+.tech-acc summary::-webkit-details-marker{display:none}
+.tech-acc summary::after{content:"＋";color:var(--faint);font-weight:400}
+.tech-acc[open] summary::after{content:"−"}
+.tech-acc p{margin:0 0 12px;color:var(--muted);font-size:14.5px;line-height:1.6}
+
 [hidden]{display:none !important}
 
 </style>
@@ -518,6 +534,7 @@ a{color:var(--brand-2);text-decoration:none}
     <button data-action="shop">🛒 Inköpslista</button>
     <button data-action="week">📅 Veckomeny</button>
     <button data-action="season">🌿 Säsong</button>
+    <button data-action="tech">📖 Tekniker</button>
     <button data-action="tools">🔁 Enhetsomvandlare</button>
     <button data-action="winefind">🔎 Vinväljare</button>
     <button data-action="cocktails">🍸 Cocktailbibliotek</button>
@@ -763,6 +780,16 @@ Grädda i 20 minuter."></textarea>
       <h1>Cocktailbibliotek</h1>
       <p class="lead">Klassiska cocktails. Tryck "Lägg till" så hamnar drinken i din samling under kategorin Drink.</p>
       <div id="cocktailList" class="ck-list"></div>
+    </article>
+  </main>
+
+  <!-- ===== View: Techniques ===== -->
+  <main class="view" id="view-tech" hidden>
+    <article class="reader">
+      <h1>Tekniker</h1>
+      <p class="lead">Vanliga matlagningstekniker förklarade. Sök, eller tryck på en teknik i ett recept för att läsa mer.</p>
+      <input id="techSearch" class="shop-input" type="text" placeholder="Sök teknik…" autocomplete="off">
+      <div id="techList" class="tech-list"></div>
     </article>
   </main>
 
@@ -1382,6 +1409,51 @@ Grädda i 20 minuter."></textarea>
   ];
 
   global.COCKTAILS = COCKTAILS;
+})(window);
+
+</script>
+
+<!-- techniques.js -->
+<script>
+/* techniques.js — ordlista över vanliga matlagningstekniker med korta förklaringar.
+   "aka" är sökstammar (gemener) som används för att känna igen tekniken i ett recepts text. */
+(function (global) {
+  'use strict';
+
+  var TECHNIQUES = [
+    { name: 'Bryna', aka: ['bryn'], desc: 'Steka snabbt på hög värme så att ytan får färg och rostad smak. Lägg inte i för mycket i taget — då kokar det i stället för att brynas.' },
+    { name: 'Fräsa', aka: ['fräs'], desc: 'Steka mjukt i fett på medelvärme utan att ta färg, t.ex. lök tills den blir blank och mjuk.' },
+    { name: 'Sautera', aka: ['sauter'], desc: 'Steka snabbt i lite fett under omrörning eller med skakande panna, så allt får värme jämnt.' },
+    { name: 'Blanchera', aka: ['blancher'], desc: 'Koka kort och kyl genast i isvatten. Bevarar färg och spänst hos grönsaker och gör skal lätta att dra av.' },
+    { name: 'Reducera', aka: ['reducer', 'koka ner', 'koka ihop', 'koka in'], desc: 'Koka ner vätska så att smaken koncentreras och såsen tjocknar.' },
+    { name: 'Sjuda', aka: ['sjud', 'puttra'], desc: 'Koka på svag värme strax under kokpunkten, så det bara småbubblar. Skonsamt för t.ex. buljong och grytor.' },
+    { name: 'Pochera', aka: ['pocher'], desc: 'Tillaga försiktigt i vätska strax under kokpunkten — klassiskt för ägg och fisk.' },
+    { name: 'Bräsera', aka: ['bräser'], desc: 'Bryn först, sedan långkoka mört i lite vätska under lock. Perfekt för sega styckdetaljer.' },
+    { name: 'Vända ner', aka: ['vänd ner', 'vänd ned', 'vänd försiktigt', 'vänd i'], desc: 'Blanda försiktigt in en luftig smet (t.ex. vispad grädde eller äggvita) med en slickepott utan att slå ur luften.' },
+    { name: 'Vispa till toppar', aka: ['vispa till toppar', 'vispa styvt', 'styva toppar', 'hårt skum', 'styvt skum'], desc: 'Vispa grädde eller äggvita tills den håller formen och bildar toppar som står raka.' },
+    { name: 'Reda av', aka: ['red av', 'redning', 'red ihop', 'maizena', 'red s'], desc: 'Tjockna en sås eller soppa, t.ex. med mjöl utrört i kallt vatten, maizena eller äggula.' },
+    { name: 'Karamellisera', aka: ['karamelliser', 'bränn sockret', 'smält sockret'], desc: 'Hetta upp socker tills det smälter och blir gyllenbrunt med karamellsmak. Det går fort på slutet — håll koll.' },
+    { name: 'Marinera', aka: ['mariner'], desc: 'Låt råvaran ligga i en kryddad vätska för att ge smak och göra köttet mörare.' },
+    { name: 'Mortla', aka: ['mortl', 'stöt i mortel'], desc: 'Krossa kryddor eller örter i en mortel för att frigöra smak och olja.' },
+    { name: 'Sila', aka: ['sila', 'passera genom', 'sikta genom sil'], desc: 'Häll genom en sil för att skilja av fasta delar och få en slät konsistens.' },
+    { name: 'Knåda', aka: ['knåd'], desc: 'Bearbeta degen tills den blir smidig och elastisk — det utvecklar glutennätet och ger bra struktur.' },
+    { name: 'Jäsa', aka: ['jäs'], desc: 'Låt en deg med jäst svälla på varm, dragfri plats tills den ungefär dubblats.' },
+    { name: 'Gratinera', aka: ['gratiner'], desc: 'Ge ytan färg i ugnens övre del eller under grill, ofta med ost eller ströbröd.' },
+    { name: 'Glasera', aka: ['glaser', 'pensla med'], desc: 'Pensla med vätska, sirap eller smält socker för glans och extra smak.' },
+    { name: 'Flambera', aka: ['flamber'], desc: 'Häll på sprit och tänd på en kort stund så alkoholen brinner av men smaken stannar. Var försiktig.' },
+    { name: 'Emulgera', aka: ['emulger', 'droppvis', 'vispa ner oljan'], desc: 'Blanda fett och vätska till en jämn, tjock blandning, t.ex. majonnäs eller vinägrett — tillsätt oljan långsamt.' },
+    { name: 'Skira smör', aka: ['skira', 'skirat smör', 'klarnat smör'], desc: 'Smält smör långsamt och häll/skumma av mjölkproteinet — kvar blir klart, hållbart smörfett.' },
+    { name: 'Brynt smör', aka: ['brynt smör', 'beurre noisette', 'nötbrynt'], desc: 'Smält smör tills mjölkproteinet bryns och doftar nötigt — ger en rik, gyllene smak.' },
+    { name: 'Vattenbad', aka: ['vattenbad', 'sjudande vatten'], desc: 'Smält eller tillaga skonsamt i en skål över eller i hett vatten, utan direkt värme — bra för choklad och äggkrämer.' },
+    { name: 'Deglacera', aka: ['deglacer', 'lös upp stekrester', 'vispa upp stekrester'], desc: 'Lös upp de smakrika stekresterna i pannan med vätska (vin, buljong) — grunden till en god sås.' },
+    { name: 'Förvälla', aka: ['förväll'], desc: 'Koka något lätt en kort stund innan vidare tillagning, t.ex. för att ta bort beska eller mjuka upp.' },
+    { name: 'Temperera', aka: ['temperer'], desc: 'Jämna ut temperaturen försiktigt — t.ex. vispa i lite varm vätska i äggulor innan allt blandas, så de inte koagulerar.' },
+    { name: 'Grädda', aka: ['grädda', 'gräddas', 'gräddat', 'grädd i ugn'], desc: 'Baka i ugn — bröd, kakor, pajer. Förvärm alltid ugnen för jämnt resultat.' },
+    { name: 'Ösa (tråckla)', aka: ['ös steken', 'ösa steken', 'ös köttet'], desc: 'Ös steken med sky eller smält fett under tillagningen för saftighet och fin yta.' },
+    { name: 'Konfitera', aka: ['konfiter'], desc: 'Tillaga långsamt och mört nedsänkt i fett på låg temperatur — klassiskt för anklår.' }
+  ];
+
+  global.TECHNIQUES = TECHNIQUES;
 })(window);
 
 </script>
@@ -2861,7 +2933,7 @@ Grädda i 20 minuter."></textarea>
     drink: 'Drink'
   };
 
-  var APP_VERSION = '1.10.0';   // visas under "Om appen"
+  var APP_VERSION = '1.11.0';   // visas under "Om appen"
 
   var $ = function (id) { return document.getElementById(id); };
   var qa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
@@ -2951,6 +3023,7 @@ Grädda i 20 minuter."></textarea>
     $('view-winefind').hidden = name !== 'winefind';
     $('view-season').hidden = name !== 'season';
     $('view-cocktails').hidden = name !== 'cocktails';
+    $('view-tech').hidden = name !== 'tech';
     $('backBtn').hidden = name === 'collection';
     $('fab').hidden = name !== 'collection';
     if (name !== 'cook') releaseWake();
@@ -3254,9 +3327,12 @@ Grädda i 20 minuter."></textarea>
     var min = parseTimerMin(step);
     var ings = cs.ingredients.length ? '<details class="cook-ings"><summary>Ingredienser</summary><ul>' +
       cs.ingredients.map(function (x) { return '<li>' + escapeHtml(x) + '</li>'; }).join('') + '</ul></details>' : '';
+    var tIdx = global.TECHNIQUES ? detectTechniqueIdx(step) : [];
+    var tHtml = tIdx.length ? '<div class="tech-row"><span class="tech-lbl">Teknik</span>' +
+      tIdx.map(function (i) { return '<button class="tech-chip" data-tech="' + i + '">' + escapeHtml(global.TECHNIQUES[i].name) + '</button>'; }).join('') + '</div>' : '';
     $('cookBody').innerHTML =
       '<div class="cook-count">Steg ' + (cs.i + 1) + ' / ' + cs.steps.length + '</div>' +
-      '<div class="cook-step">' + escapeHtml(step) + '</div>' +
+      '<div class="cook-step">' + escapeHtml(step) + '</div>' + tHtml +
       (min ? '<button class="btn cook-timer-btn" data-timer="' + min + '">⏲ Starta timer (' + min + ' min)</button>' : '') +
       '<div class="cook-timer" id="cookTimer" hidden></div>' + ings;
     $('cookPrev').disabled = cs.i === 0;
@@ -3414,6 +3490,39 @@ Grädda i 20 minuter."></textarea>
     });
   }
 
+  /* ---------- Tekniker (igenkänning + guide) ---------- */
+
+  function detectTechniqueIdx(text) {
+    var t = (text || '').toLowerCase(), out = [], T = global.TECHNIQUES || [];
+    T.forEach(function (tech, i) {
+      var forms = tech.aka || [tech.name.toLowerCase()];
+      for (var k = 0; k < forms.length; k++) { if (t.indexOf(forms[k]) !== -1) { out.push(i); break; } }
+    });
+    return out;
+  }
+  function techRow(r) {
+    if (!global.TECHNIQUES) return '';
+    var idx = detectTechniqueIdx(stripHtml(r.bodyHtml));
+    if (!idx.length) return '';
+    return '<div class="tech-row"><span class="tech-lbl">Tekniker</span>' +
+      idx.map(function (i) { return '<button class="tech-chip" data-tech="' + i + '">' + escapeHtml(global.TECHNIQUES[i].name) + '</button>'; }).join('') + '</div>';
+  }
+  function showTechnique(i) {
+    var tech = (global.TECHNIQUES || [])[i]; if (!tech) return;
+    openSheet('<div class="wine-head"><h2>' + escapeHtml(tech.name) + '</h2></div>' +
+      '<p class="tech-desc">' + escapeHtml(tech.desc) + '</p>' +
+      '<div class="wine-foot"><button class="btn" data-action="tech">Alla tekniker</button>' +
+      '<button class="btn btn-primary" data-sheet-close="1">Stäng</button></div>');
+  }
+  function openTech() { showView('tech'); renderTech(); }
+  function renderTech() {
+    var T = global.TECHNIQUES || [], q = ($('techSearch').value || '').toLowerCase();
+    var list = T.filter(function (t) { return !q || t.name.toLowerCase().indexOf(q) !== -1 || t.desc.toLowerCase().indexOf(q) !== -1; });
+    $('techList').innerHTML = list.length
+      ? list.map(function (t) { return '<details class="tech-acc"><summary>' + escapeHtml(t.name) + '</summary><p>' + escapeHtml(t.desc) + '</p></details>'; }).join('')
+      : '<p class="wine-empty">Inga tekniker matchar.</p>';
+  }
+
   /* ---------- Cocktailbibliotek ---------- */
 
   function openCocktails() { showView('cocktails'); renderCocktails(); }
@@ -3502,6 +3611,7 @@ Grädda i 20 minuter."></textarea>
           (r.source ? ' · källa: ' + escapeHtml(r.source) : '') + '</div>' +
         ratingRow(r) +
         readerActions() +
+        techRow(r) +
         (rest.length ? '<div class="gallery-strip">' + rest.map(function (s) {
           return '<img src="' + s + '" alt="">'; }).join('') + '</div>' : '') +
         scalerHtml(r) +
@@ -3980,6 +4090,7 @@ Grädda i 20 minuter."></textarea>
       case 'week-shop': weekToShopping(); break;
       case 'season': closeMenu(); openSeason(); break;
       case 'cocktails': closeMenu(); openCocktails(); break;
+      case 'tech': closeMenu(); closeSheet(); openTech(); break;
       case 'shop-add': addShopItem(); break;
       case 'shop-clear-done': shopClearDone(); break;
       case 'shop-clear-all': shopClearAll(); break;
@@ -4052,8 +4163,10 @@ Grädda i 20 minuter."></textarea>
     });
     $('shopInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); addShopItem(); } });
 
-    // Läsvy: favorit, betyg, lagad
+    // Läsvy: favorit, betyg, lagad, teknik
     $('reader').addEventListener('click', function (e) {
+      var tc = e.target.closest('[data-tech]');
+      if (tc) { showTechnique(parseInt(tc.getAttribute('data-tech'), 10)); return; }
       var r = state.editing; if (!r) return;
       var fav = e.target.closest('[data-fav]');
       if (fav) { r.favorite = !r.favorite; saveAndRefreshReader(r); return; }
@@ -4065,8 +4178,12 @@ Grädda i 20 minuter."></textarea>
 
     // Kökslägé: starta timer
     $('cookBody').addEventListener('click', function (e) {
-      var t = e.target.closest('[data-timer]'); if (t) startTimer(parseInt(t.getAttribute('data-timer'), 10));
+      var t = e.target.closest('[data-timer]'); if (t) { startTimer(parseInt(t.getAttribute('data-timer'), 10)); return; }
+      var tc = e.target.closest('[data-tech]'); if (tc) showTechnique(parseInt(tc.getAttribute('data-tech'), 10));
     });
+
+    // Tekniker – sök
+    $('techSearch').addEventListener('input', renderTech);
 
     // Veckomeny
     $('weekList').addEventListener('click', function (e) {
