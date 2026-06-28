@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="dark">
 <title>Lingonbergets kulinariska samling</title>
 <!-- ============================================================= -->
-<!--  LINGONBERGET v1.12.2 — SJÄLVSTÄNDIG VERSION              -->
+<!--  LINGONBERGET v1.13.0 — SJÄLVSTÄNDIG VERSION              -->
 <!--  All CSS och JavaScript är inbakad i denna enda fil.          -->
 <!--  DETTA ÄR DEN NYA FILEN som ska ligga som index.html.         -->
 <!-- ============================================================= -->
@@ -676,31 +676,40 @@ Grädda i 20 minuter."></textarea>
 
       <div class="body">
         <h2>Skapa &amp; redigera recept</h2>
-        <p>Tryck på <strong>＋</strong> (eller "Nytt recept" i menyn) för att skapa ett recept. Ge det ett namn, välj kategori och skriv ingredienser och tillagning i texteditorn. Verktygsfältet ger rubriker, fet/kursiv text, punkt- och nummerlistor.</p>
+        <p>Tryck på <strong>＋</strong> (eller "Nytt recept"). Ge namn, välj kategori och fyll i <strong>tre tydliga fält</strong>: Beskrivning, Ingredienser (en per rad) och Gör så här (ett steg per rad). En ingrediensrad som slutar med kolon blir en delrubrik (t.ex. ”Sås:”). Sätt <strong>Portioner</strong> så fungerar portionsräknaren.</p>
 
-        <h2>Fota &amp; skanna recept (OCR)</h2>
-        <p>Tryck på <strong>Skanna recept (OCR)</strong> för att fotografera eller välja en bild på ett recept. På en <strong>tidningssida med flera spalter</strong> får du först <strong>rama in just receptet</strong> — dra rutan så att bara den spalten är med, så slipper OCR:en läsa grannrecept och bildtexter. Bilden förbättras (gråskala, kontrast) före tolkning. Du kan <strong>fota flera sidor på en gång</strong> — alla läses i ordning. Granska och rätta alltid resultatet. Bästa resultat: fota rakt ovanifrån, nära, med jämnt ljus.</p>
+        <h2>Hämta in recept</h2>
+        <p><strong>🌐 Sök recept online</strong> (menyn): sök på webben, välj källa (Alla/Köket.se/ICA/Arla) och tryck på en träff för att importera. <strong>Importera från länk:</strong> klistra in en receptadress — appen letar efter sidans reklamfria ”skriv ut”-version och recept-märkning, och följer Pinterest-pins vidare till källan. <strong>Klistra in recept:</strong> klistra in valfri text (funkar offline). Importer fyller fälten automatiskt och bilden bäddas in.</p>
 
-        <h2>Importera PDF</h2>
-        <p>Tryck på <strong>Importera PDF</strong> och välj en fil från Filer, iCloud Drive eller OneDrive. Har PDF:en ett textlager plockas texten ut rad för rad. Är PDF:en <strong>inskannad</strong> (sidorna är bilder) tolkas de automatiskt med bildigenkänning. Förstasidan sparas som bild.</p>
+        <h2>Fota &amp; skanna (OCR) + PDF</h2>
+        <p><strong>Skanna recept (OCR):</strong> fotografera ett recept. På en tidningssida får du <strong>rama in</strong> just receptet; bilden förbättras före tolkning och du kan ta flera sidor. <strong>Importera PDF:</strong> digitala PDF:er läses rad för rad, inskannade tolkas med bildigenkänning. Granska alltid resultatet. Bästa foto: rakt ovanifrån, nära, jämnt ljus.</p>
 
-        <h2>Importera från webben — köket.se &amp; Pinterest</h2>
-        <p>Tryck på <strong>Importera från länk</strong> och klistra in en receptadress. Appen provar flera hämtningssätt och letar i första hand efter sidans <strong>reklamfria "skriv ut"-version</strong> samt recept-märkning (titel, ingredienser, steg, bild) — så ads och popups stör inte. En <strong>Pinterest-pin</strong> pekar oftast vidare till en källsajt; appen följer den länken. Tips: på Pinterest kan du också öppna pinnen, gå till källbloggen och klistra in <strong>den</strong> adressen. Blockerar en sajt allt, använd "Klistra in recept".</p>
+        <h2>Portioner, kökslägé &amp; timers</h2>
+        <p>I läsvyn finns en <strong>portionsräknare</strong> (−/+ eller ½×/1×/2×/3×) som skalar alla mängder. <strong>👨‍🍳 Laga</strong> öppnar kökslägét: steg för steg med stor text, skärmen hålls tänd, och tider i stegen blir <strong>timers med ett tryck</strong> (ljud + vibration när det är klart).</p>
 
-        <h2>Klistra in text</h2>
-        <p>Tryck på <strong>Klistra in recept</strong> och klistra in valfri recepttext. Den tolkas och struktureras direkt — fungerar alltid, även utan internet.</p>
+        <h2>Tekniker</h2>
+        <p>Appen känner igen <strong>matlagningstekniker</strong> i receptet och visar dem som klickbara förklaringar — i läsvyn och i kökslägét. Hela ordlistan finns i menyn under <strong>📖 Tekniker</strong> (sökbar).</p>
 
-        <h2>Bilder till receptet</h2>
-        <p>Lägg till foton med <strong>Bild / kamera</strong>. Första bilden blir omslag i listan och längst upp i receptet. När du skriver in ett nytt recept för hand påminner appen dig om att lägga till en bild av rätten.</p>
+        <h2>Inköpslista</h2>
+        <p>Tryck <strong>🛒 Inköpslista</strong> på ett recept för att lägga till ingredienserna — appen <strong>slår ihop dubbletter och summerar mängder</strong> (”2 dl + 1 dl mjölk → 3 dl”) och grupperar per varugrupp. Hittas via menyn; bocka av medan du handlar.</p>
 
-        <h2>Spara till iCloud / Filer</h2>
-        <p>Med <strong>Spara till iCloud</strong> sparas ett recept som en fil du kan lägga i iCloud Drive eller Filer. Öppna sparade recept igen via menyns "Öppna recept från iCloud / Filer".</p>
+        <h2>Planera: veckomeny &amp; middagsmeny</h2>
+        <p><strong>📅 Veckomeny:</strong> lägg ett recept per dag och bygg inköpslistan för hela veckan. <strong>🍽️ Middagsmeny:</strong> slumpa en trerätters ur din samling, få vinförslag och bygg inköpslista — och skapa ett snyggt <strong>🧾 Menykort</strong> att skriva ut eller spara som PDF.</p>
 
-        <h2>Säkerhetskopiera hela samlingen</h2>
-        <p>Via menyn kan du <strong>exportera hela samlingen</strong> till en säkerhetskopia (.json) och <strong>importera</strong> den igen — bra vid byte av enhet.</p>
+        <h2>Säsong</h2>
+        <p>Menyns <strong>🌿 Säsong</strong> visar råvaror i säsong just nu (nordisk kalender) och lyfter fram dina recept som använder dem. Appens accentfärg skiftar med årstiden.</p>
+
+        <h2>Vin &amp; dryck</h2>
+        <p><strong>🍷 Föreslå vin</strong> på ett recept matchar rätten mot Alkos sortiment; <strong>🔎 Vinväljare</strong> låter dig filtrera fritt på färg, pris och druva. <strong>🍸 Cocktailbibliotek</strong> innehåller klassiska drinkar att lägga till i din samling (kategorin Drink).</p>
+
+        <h2>Verktyg</h2>
+        <p><strong>🔁 Enhetsomvandlare</strong> för volym, vikt och temperatur. <strong>⇄ Översätt → svenska</strong> i redigeringsläget översätter ett utländskt recept. <strong>★ Favoriter &amp; betyg</strong> samt ”senast lagad” sätter du i läsvyn; favoriter har eget filter.</p>
+
+        <h2>Dela, spara &amp; säkerhetskopiera</h2>
+        <p>Från ett recept kan du <strong>⤴ Dela</strong> eller <strong>⎙ Skriv ut / spara som PDF</strong>. <strong>Spara till iCloud</strong> lägger receptet som fil i iCloud Drive/Filer. Via menyn kan du <strong>exportera hela samlingen</strong> som säkerhetskopia och importera den igen. Allt sparas lokalt på enheten.</p>
 
         <h2>Lägg till på hemskärmen</h2>
-        <p>Öppna sidan i Safari, tryck på <strong>Dela</strong> → <strong>Lägg till på hemskärmen</strong>. Då körs appen i helskärm. Recepten finns kvar på enheten.</p>
+        <p>Öppna sidan i Safari → <strong>Dela</strong> → <strong>Lägg till på hemskärmen</strong>, så körs appen i helskärm. Recepten finns kvar på enheten.</p>
 
         <hr class="rule" id="aboutSection">
 
@@ -856,6 +865,7 @@ Grädda i 20 minuter."></textarea>
         <button type="button" class="conv-tab" data-rs-site="koket.se">Köket.se</button>
         <button type="button" class="conv-tab" data-rs-site="ica.se">ICA</button>
         <button type="button" class="conv-tab" data-rs-site="arla.se">Arla</button>
+        <button type="button" class="conv-tab" data-rs-site="pirkka.fi">Pirkka</button>
       </div>
       <div class="shop-add-row">
         <input id="rsQuery" class="shop-input" type="text" placeholder="t.ex. lammgryta, laxpasta…" autocomplete="off">
@@ -1294,9 +1304,23 @@ Grädda i 20 minuter."></textarea>
 
   var UF = { '½': 0.5, '¼': 0.25, '¾': 0.75, '⅓': 1 / 3, '⅔': 2 / 3, '⅛': 0.125 };
   var FR = [[0.125, '⅛'], [0.25, '¼'], [1 / 3, '⅓'], [0.5, '½'], [2 / 3, '⅔'], [0.75, '¾']];
-  var UNITS = ['ml', 'cl', 'dl', 'l', 'krm', 'tsk', 'msk', 'g', 'hg', 'kg', 'st', 'port',
+  var UNITS = ['ml', 'cl', 'dl', 'l', 'krm', 'tsk', 'msk', 'g', 'hg', 'kg', 'st', 'stk', 'port',
     'klyfta', 'klyftor', 'burk', 'burkar', 'paket', 'pkt', 'påse', 'påsar', 'knippe',
     'skiva', 'skivor', 'nypa', 'näve', 'kvist', 'kvistar', 'blad'];
+
+  // Enhetssynonymer → kanonisk enhet (så "matsked" = "msk").
+  var SYN = { matsked: 'msk', matskedar: 'msk', tesked: 'tsk', teskedar: 'tsk', gram: 'g',
+    kilogram: 'kg', kilo: 'kg', hekto: 'hg', deciliter: 'dl', centiliter: 'cl', milliliter: 'ml',
+    liter: 'l', kryddmått: 'krm', styck: 'st', stycken: 'st', förp: 'paket', förpackning: 'paket' };
+
+  // Beskrivande ord som inte ska hindra sammanslagning ("gul lök, finhackad" = "gul lök").
+  var ADJ = /\b(f[äa]rsk[a]?|finhackad[e]?|finriven|finrivna|hackad[e]?|riven|rivet|rivna|skalad[e]?|strimlad[e]?|t[äa]rnad[e]?|pressad[e]?|kokt[a]?|mald|malen|malda|torkad[e]?|fryst[a]?|stor[a]?|lit[ei]n|litet|sm[åa]|grovhackad[e]?|grov[t]?|fint|ca)\b/g;
+  function normKey(n) {
+    n = (n || '').toLowerCase().split(',')[0];
+    n = n.replace(ADJ, ' ').replace(/klyftor\b/g, 'klyfta').replace(/skivor\b/g, 'skiva');
+    return n.replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+  }
+  function keyUnit(u) { return (u === 'st' || u === 'stk') ? '' : u; }
 
   function num(s) { return parseFloat(String(s).replace(',', '.')); }
 
@@ -1326,12 +1350,16 @@ Grädda i 20 minuter."></textarea>
     var rest = m[2] || '';
     var unit = '', name = rest;
     var um = rest.match(/^([a-zåäöA-ZÅÄÖ]+)\b\s*(.*)$/);
-    if (um && UNITS.indexOf(um[1].toLowerCase()) !== -1) { unit = um[1].toLowerCase(); name = um[2]; }
+    if (um) {
+      var lc = um[1].toLowerCase();
+      if (UNITS.indexOf(lc) !== -1) { unit = lc; name = um[2]; }
+      else if (SYN[lc]) { unit = SYN[lc]; name = um[2]; }
+    }
     name = name.replace(/^\s+|\s+$/g, '');
     return { qty: range ? null : qtyVal(m[1]), unit: unit, name: name, range: range, raw: raw };
   }
 
-  function key(p) { return (p.name || '').toLowerCase().replace(/\s+/g, ' ').trim() + '|' + p.unit; }
+  function key(p) { return normKey(p.name) + '|' + keyUnit(p.unit); }
 
   function compose(p) {
     if (p.qty == null || !isFinite(p.qty)) return p.raw;
@@ -1341,17 +1369,13 @@ Grädda i 20 minuter."></textarea>
   // Slå ihop en ny vara i en befintlig lista (summerar mängd om enhet+namn matchar).
   function mergeInto(items, text, src) {
     var p = parse(text);
-    if (p.qty != null && p.name) {
-      var k = key(p);
-      for (var i = 0; i < items.length; i++) {
-        if (items[i].checked) continue;
-        var ep = parse(items[i].text);
-        if (ep.qty != null && key(ep) === k) {
-          ep.qty += p.qty;
-          items[i].text = compose(ep);
-          return items;
-        }
-      }
+    var k = key(p);
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].checked) continue;
+      var ep = parse(items[i].text);
+      if (key(ep) !== k) continue;
+      if (p.qty != null && ep.qty != null) { ep.qty += p.qty; items[i].text = compose(ep); return items; }
+      if (p.qty == null && ep.qty == null) { return items; }   // dubblett utan mängd → behåll en
     }
     items.push({ id: 's' + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36), text: text, checked: false, src: src || '' });
     return items;
@@ -2978,21 +3002,40 @@ Grädda i 20 minuter."></textarea>
     return out;
   }
 
+  function viaJina(targetUrl, site) {
+    return fetch('https://r.jina.ai/' + targetUrl).then(function (r) { if (!r.ok) throw 0; return r.text(); })
+      .then(function (md) { return parseMarkdown(md, site); });
+  }
+  function viaProxy(targetUrl, site) {
+    return fetchHtml(targetUrl).then(function (html) { return parseHtml(html, site); });
+  }
+
   var RecipeSearch = {
     /** Sök. site (valfritt) begränsar till en domän. Returnerar [{ title, url, domain }]. */
     search: function (query, site) {
       var q = (query || '').trim();
       if (!q) return Promise.resolve([]);
       var terms = q + ' recept' + (site ? ' site:' + site : '');
-      var ddg = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(terms);
+      var enc = encodeURIComponent(terms);
+      var ddgHtml = 'https://html.duckduckgo.com/html/?q=' + enc;
+      var ddgLite = 'https://lite.duckduckgo.com/lite/?q=' + enc;
+      var bing = 'https://www.bing.com/search?q=' + enc;
 
-      // 1) via r.jina.ai (renderar sidan, CORS-ok)
-      return fetch('https://r.jina.ai/' + ddg).then(function (r) { if (!r.ok) throw 0; return r.text(); })
-        .then(function (md) { var res = parseMarkdown(md, site); if (res.length) return res; throw 0; })
-        .catch(function () {
-          // 2) reserv: proxy + HTML-tolkning
-          return fetchHtml(ddg).then(function (html) { return parseHtml(html, site); });
-        });
+      // Prova flera vägar i tur och ordning, returnera första med träffar.
+      var attempts = [
+        function () { return viaJina(ddgHtml, site); },
+        function () { return viaJina(ddgLite, site); },
+        function () { return viaProxy(ddgHtml, site); },
+        function () { return viaJina(bing, site); }
+      ];
+      var i = 0;
+      function next() {
+        if (i >= attempts.length) return Promise.resolve([]);
+        return attempts[i++]().then(function (res) {
+          return (res && res.length) ? res : next();
+        }).catch(function () { return next(); });
+      }
+      return next();
     }
   };
 
@@ -3115,7 +3158,7 @@ Grädda i 20 minuter."></textarea>
     drink: 'Drink'
   };
 
-  var APP_VERSION = '1.12.2';   // visas under "Om appen"
+  var APP_VERSION = '1.13.0';   // visas under "Om appen"
 
   var $ = function (id) { return document.getElementById(id); };
   var qa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
