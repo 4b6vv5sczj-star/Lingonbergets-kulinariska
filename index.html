@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="dark">
 <title>Lingonbergets kulinariska samling</title>
 <!-- ============================================================= -->
-<!--  LINGONBERGET v1.13.2 — SJÄLVSTÄNDIG VERSION              -->
+<!--  LINGONBERGET v1.14.0 — SJÄLVSTÄNDIG VERSION              -->
 <!--  All CSS och JavaScript är inbakad i denna enda fil.          -->
 <!--  DETTA ÄR DEN NYA FILEN som ska ligga som index.html.         -->
 <!-- ============================================================= -->
@@ -445,7 +445,8 @@ a{color:var(--brand-2);text-decoration:none}
 
 /* ===== Utskrift / PDF ===== */
 @media print{
-  body{background:#fff !important;color:#000 !important}
+  body{background:#fff !important;color:#000 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .topbar,.fab,.action-bar,.reader-actions,.rate-row,.scaler,.tech-row,.menu,.sheet-backdrop,.busy,.toast,.gallery-strip,.field-label,#menuCardTitle,.season-banner{display:none !important}
   .view{max-width:none;padding:0}
   .reader .tag{color:#444;border-color:#bbb;background:#f3f3f3}
@@ -454,10 +455,11 @@ a{color:var(--brand-2);text-decoration:none}
   .reader .body h2{color:#000}
   .reader .hero{max-height:240px}
   .ing-sub{color:#000}
-  .menu-card{background:#fffdf7 !important;border:1px solid #d8cfc0;color:#1a1a1a;max-width:520px;margin:0 auto;box-shadow:none}
-  .mc-title,.mc-name{color:#1a1a1a}
-  .mc-label,.mc-rule,.mc-wine{color:#9a2740}
-  .mc-date,.mc-foot{color:#555}
+  .menu-card{background:#fdf6ea !important;border:1px solid #c9b89c;color:#141414;max-width:520px;margin:0 auto;box-shadow:none}
+  .mc-title{color:#141414;font-weight:700}
+  .mc-name{color:#141414}
+  .mc-label,.mc-rule,.mc-wine{color:#7f1d33}
+  .mc-date,.mc-foot{color:#3d3d3d}
 }
 
 /* ===== Säsong (guide + tema) ===== */
@@ -917,21 +919,13 @@ Grädda i 20 minuter."></textarea>
   <input type="file" id="fileCollection" accept="application/json,.json" hidden>
 </div>
 
-<!-- Engangsstadning: avregistrera gammal service worker och tom gammal cache -->
+<!-- Service worker: network-first → alltid senaste versionen, men funkar offline -->
 <script>
-(function(){
-  try {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations()
-        .then(function (rs) { rs.forEach(function (r) { r.unregister(); }); })
-        .catch(function () {});
-    }
-    if (window.caches && caches.keys) {
-      caches.keys().then(function (keys) { keys.forEach(function (k) { caches.delete(k); }); })
-        .catch(function () {});
-    }
-  } catch (e) {}
-})();
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
 </script>
 
 <!-- store.js -->
@@ -3170,7 +3164,7 @@ Grädda i 20 minuter."></textarea>
     drink: 'Drink'
   };
 
-  var APP_VERSION = '1.13.2';   // visas under "Om appen"
+  var APP_VERSION = '1.14.0';   // visas under "Om appen"
 
   var $ = function (id) { return document.getElementById(id); };
   var qa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };

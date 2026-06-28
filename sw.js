@@ -1,34 +1,10 @@
-/* sw.js — service worker.
-   Strategi: "stale-while-revalidate" för appens egna filer — appen startar direkt
-   från cache (även offline), men varje fil hämtas samtidigt på nytt i bakgrunden
-   och uppdateras inför nästa öppning. Då uppdaterar appen sig själv automatiskt,
-   utan att man behöver ta bort och lägga till den på hemskärmen.
-   OCR-/PDF-biblioteken laddas från CDN och går direkt till nätet. */
-var CACHE = 'lingonberget-v4';
-var SHELL = [
-  './',
-  './index.html',
-  './app.css',
-  './store.js',
-  './editor.js',
-  './recipeformat.js',
-  './ocr.js',
-  './pdfimport.js',
-  './webimport.js',
-  './icloud.js',
-  './app.js',
-  './manifest.webmanifest',
-  './icon-192.png',
-  './icon-512.png',
-  './apple-touch-icon.png',
-  './maskable-512.png'
-];
+/* sw.js — service worker med "network-first" för själva appen, så att den ALLTID
+   hämtar senaste versionen från nätet när du är online, men funkar offline via cache.
+   Övriga egna resurser (manifest, ikoner, wines.json) använder stale-while-revalidate.
+   CDN/proxy-anrop (Tesseract, pdf.js, SheetJS, jina, proxyer) går direkt till nätet. */
+var CACHE = 'lingonberget-app-v1';
 
-self.addEventListener('install', function (e) {
-  e.waitUntil(
-    caches.open(CACHE).then(function (c) { return c.addAll(SHELL); }).then(function () { return self.skipWaiting(); })
-  );
-});
+self.addEventListener('install', function () { self.skipWaiting(); });
 
 self.addEventListener('activate', function (e) {
   e.waitUntil(
@@ -43,25 +19,31 @@ self.addEventListener('fetch', function (e) {
   if (req.method !== 'GET') return;
 
   var url = new URL(req.url);
-  // Endast egna app-resurser hanteras här; CDN/proxy går direkt till nätet.
-  if (url.origin !== self.location.origin) return;
+  if (url.origin !== self.location.origin) return;   // CDN/proxy → direkt till nätet
 
+  // Sidladdning: hämta alltid färskt från nätet (förbi HTTP-cachen), cacha för offline.
+  if (req.mode === 'navigate') {
+    e.respondWith(
+      fetch(req.url, { cache: 'no-store' }).then(function (res) {
+        var copy = res.clone();
+        caches.open(CACHE).then(function (c) { c.put('./index.html', copy); });
+        return res;
+      }).catch(function () {
+        return caches.match('./index.html').then(function (m) { return m || caches.match('./'); });
+      })
+    );
+    return;
+  }
+
+  // Övriga egna resurser: visa cache direkt, uppdatera i bakgrunden.
   e.respondWith(
-    caches.open(CACHE).then(function (cache) {
-      return cache.match(req).then(function (cached) {
-        // Hämta alltid en färsk kopia i bakgrunden och uppdatera cachen.
-        var network = fetch(req).then(function (res) {
-          if (res && res.status === 200 && res.type === 'basic') {
-            cache.put(req, res.clone());
-          }
+    caches.open(CACHE).then(function (c) {
+      return c.match(req).then(function (cached) {
+        var net = fetch(req).then(function (res) {
+          if (res && res.status === 200 && res.type === 'basic') c.put(req, res.clone());
           return res;
-        }).catch(function () {
-          // Offline: fall tillbaka på cache (och index.html för sidnavigering).
-          return cached || (req.mode === 'navigate' ? cache.match('./index.html') : undefined);
-        });
-
-        // Visa cache direkt om den finns, annars vänta på nätet.
-        return cached || network;
+        }).catch(function () { return cached; });
+        return cached || net;
       });
     })
   );
