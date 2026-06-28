@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="dark">
 <title>Lingonbergets kulinariska samling</title>
 <!-- ============================================================= -->
-<!--  LINGONBERGET v1.9.4 — SJÄLVSTÄNDIG VERSION              -->
+<!--  LINGONBERGET v1.10.0 — SJÄLVSTÄNDIG VERSION              -->
 <!--  All CSS och JavaScript är inbakad i denna enda fil.          -->
 <!--  DETTA ÄR DEN NYA FILEN som ska ligga som index.html.         -->
 <!-- ============================================================= -->
@@ -178,6 +178,14 @@ a{color:var(--brand-2);text-decoration:none}
 .title-input::placeholder{color:var(--faint)}
 .title-input:focus{outline:none;border-color:var(--brand)}
 .field-label{display:block;margin:20px 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint)}
+
+/* Strukturerade redigeringsfält */
+.ed-area{width:100%;padding:13px 14px;border-radius:13px;background:var(--surface);
+  border:1px solid var(--line-2);color:var(--ink);font-size:16px;line-height:1.6;
+  font-family:var(--serif);resize:vertical;min-height:60px;-webkit-appearance:none}
+.ed-area:focus{outline:none;border-color:var(--brand)}
+.ed-area::placeholder{color:var(--faint);font-family:var(--sans);font-size:14px}
+.ed-intro{font-family:var(--sans);font-size:15px;min-height:50px}
 
 .cat-picker{display:flex;flex-wrap:wrap;gap:9px}
 .cat{padding:9px 15px;border-radius:999px;font-size:13.5px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted)}
@@ -447,6 +455,33 @@ a{color:var(--brand-2);text-decoration:none}
   .ing-sub{color:#000}
 }
 
+/* ===== Säsong (guide + tema) ===== */
+:root{--season:#c1304a}
+[data-season="winter"]{--season:#5b9bd5}
+[data-season="spring"]{--season:#5cb85c}
+[data-season="summer"]{--season:#e8a13a}
+[data-season="autumn"]{--season:#d2691e}
+.season-banner{display:flex;align-items:center;gap:9px;width:100%;margin:0 0 12px;padding:11px 13px;
+  border-radius:12px;background:var(--surface-2);border:1px solid var(--line);border-left:3px solid var(--season);
+  font-size:13px;color:var(--muted);text-align:left}
+.season-banner b{color:var(--ink);font-weight:600}
+.season-emoji{font-size:18px;flex:0 0 auto}
+.season-h{display:flex;align-items:center;gap:10px;font-family:var(--serif)}
+.season-chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 6px}
+.season-chip{padding:7px 13px;border-radius:999px;font-size:13.5px;background:var(--surface-2);
+  border:1px solid var(--season);color:var(--ink)}
+
+/* ===== Cocktailbibliotek ===== */
+.ck-list{display:flex;flex-direction:column;gap:9px}
+.ck-item{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:12px 13px;
+  border-radius:12px;background:var(--surface);border:1px solid var(--line)}
+.ck-main{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ck-main strong{font-family:var(--serif);font-size:15.5px}
+.ck-meta{font-size:12px;color:var(--faint)}
+.ck-add{flex:0 0 auto;padding:9px 13px;border-radius:999px;font-size:13px;font-weight:600;
+  background:var(--surface-3);border:1px solid var(--line-2);color:var(--ink)}
+.ck-add:active{background:var(--brand);border-color:var(--brand)}
+
 [hidden]{display:none !important}
 
 </style>
@@ -482,8 +517,10 @@ a{color:var(--brand-2);text-decoration:none}
     <button data-action="import-all">⤒ Importera samling (.json)</button>
     <button data-action="shop">🛒 Inköpslista</button>
     <button data-action="week">📅 Veckomeny</button>
+    <button data-action="season">🌿 Säsong</button>
     <button data-action="tools">🔁 Enhetsomvandlare</button>
     <button data-action="winefind">🔎 Vinväljare</button>
+    <button data-action="cocktails">🍸 Cocktailbibliotek</button>
     <button data-action="wine-update">🍷 Uppdatera vinsortiment</button>
     <button data-action="help">？ Så funkar appen</button>
     <a class="menu-about" data-action="about">Om appen · v<span class="app-version"></span></a>
@@ -491,6 +528,7 @@ a{color:var(--brand-2);text-decoration:none}
 
   <!-- ===== View: Collection ===== -->
   <main class="view" id="view-collection">
+    <div class="season-banner" id="seasonBanner" data-action="season" hidden></div>
     <div class="search-row">
       <svg class="search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
       <input type="search" id="searchInput" placeholder="Sök recept, ingrediens…" autocomplete="off">
@@ -504,6 +542,7 @@ a{color:var(--brand-2);text-decoration:none}
       <button class="chip" data-cat="efterratt">Efterrätt</button>
       <button class="chip" data-cat="bakverk">Bakverk</button>
       <button class="chip" data-cat="vegetariskt">Vegetariskt</button>
+      <button class="chip" data-cat="drink">Drink</button>
     </div>
 
     <div class="grid" id="recipeGrid"></div>
@@ -537,6 +576,7 @@ a{color:var(--brand-2);text-decoration:none}
         <button type="button" class="cat" data-cat="efterratt">Efterrätt</button>
         <button type="button" class="cat" data-cat="bakverk">Bakverk</button>
         <button type="button" class="cat" data-cat="vegetariskt">Vegetariskt</button>
+        <button type="button" class="cat" data-cat="drink">Drink</button>
       </div>
 
       <label class="field-label">Portioner (valfritt — används av portionsräknaren)</label>
@@ -553,20 +593,20 @@ a{color:var(--brand-2);text-decoration:none}
         <button type="button" class="pill" data-action="translate">⇄ Översätt → svenska</button>
       </div>
 
-      <label class="field-label">Recept</label>
-      <!-- Rich text editor (återanvänder Baltic-editorns mekanism) -->
-      <div class="editor-shell">
-        <div class="editor-toolbar" id="editorToolbar">
-          <button type="button" data-cmd="formatBlock" data-val="H2"><span class="tb-ic">H</span><span class="tb-lbl">Rubrik</span></button>
-          <button type="button" data-cmd="bold"><span class="tb-ic"><b>F</b></span><span class="tb-lbl">Fet</span></button>
-          <button type="button" data-cmd="italic"><span class="tb-ic"><i>K</i></span><span class="tb-lbl">Kursiv</span></button>
-          <button type="button" data-cmd="insertUnorderedList"><span class="tb-ic">•</span><span class="tb-lbl">Punkter</span></button>
-          <button type="button" data-cmd="insertOrderedList"><span class="tb-ic">1.</span><span class="tb-lbl">Numrerad</span></button>
-          <button type="button" data-cmd="removeFormat"><span class="tb-ic">⌫</span><span class="tb-lbl">Rensa</span></button>
-        </div>
-        <div class="editor" id="editor" contenteditable="true" spellcheck="true"
-             data-placeholder="Skriv ingredienser och tillagning här. Skannad text och importer hamnar här — redigera fritt."></div>
-      </div>
+      <label class="field-label">Beskrivning (valfritt)</label>
+      <textarea class="ed-area ed-intro" id="edIntro" rows="2" spellcheck="true" placeholder="Kort om rätten…"></textarea>
+
+      <label class="field-label">Ingredienser — en per rad</label>
+      <textarea class="ed-area" id="edIng" rows="7" spellcheck="true" placeholder="2 dl vetemjöl
+100 g smör
+1 tsk salt
+
+Tips: en rad som slutar med kolon blir en delrubrik, t.ex. ”Sås:”"></textarea>
+
+      <label class="field-label">Gör så här — ett steg per rad</label>
+      <textarea class="ed-area" id="edSteps" rows="8" spellcheck="true" placeholder="Sätt ugnen på 200 grader.
+Blanda smör och mjöl till en deg.
+Grädda i 20 minuter."></textarea>
 
       <div class="action-bar">
         <button type="button" class="btn btn-danger" data-action="delete">Radera</button>
@@ -703,6 +743,26 @@ a{color:var(--brand-2);text-decoration:none}
       </div>
       <div class="wf-count" id="wfCount"></div>
       <div id="wfResults" class="wine-list"></div>
+    </article>
+  </main>
+
+  <!-- ===== View: Season ===== -->
+  <main class="view" id="view-season" hidden>
+    <article class="reader">
+      <h1 class="season-h" id="seasonHead"></h1>
+      <p class="lead">Råvaror som är i säsong just nu — och dina recept som använder dem.</p>
+      <div class="season-chips" id="seasonChips"></div>
+      <label class="field-label">Recept i säsong</label>
+      <div id="seasonRecipes" class="pick-list"></div>
+    </article>
+  </main>
+
+  <!-- ===== View: Cocktails ===== -->
+  <main class="view" id="view-cocktails" hidden>
+    <article class="reader">
+      <h1>Cocktailbibliotek</h1>
+      <p class="lead">Klassiska cocktails. Tryck "Lägg till" så hamnar drinken i din samling under kategorin Drink.</p>
+      <div id="cocktailList" class="ck-list"></div>
     </article>
   </main>
 
@@ -900,93 +960,6 @@ a{color:var(--brand-2);text-decoration:none}
   };
 
   global.Store = Store;
-})(window);
-
-</script>
-
-<!-- editor.js -->
-<script>
-/* editor.js — enkel rich text-editor.
-   Återanvänder mekanismen från Baltic Yachts interna editor (specification.html):
-   en contenteditable-yta + ett verktygsfält som kör document.execCommand,
-   inkl. infoga bild via insertHTML <img class="sp-img">. */
-(function (global) {
-  'use strict';
-
-  var Editor = {
-    el: null,
-    toolbar: null,
-    _onChange: null,
-
-    init: function (editorEl, toolbarEl, onChange) {
-      this.el = editorEl;
-      this.toolbar = toolbarEl;
-      this._onChange = onChange || function () {};
-      var self = this;
-
-      // Verktygsknappar: kör execCommand med ev. värde (data-val).
-      toolbarEl.addEventListener('click', function (e) {
-        var btn = e.target.closest('button[data-cmd]');
-        if (!btn) return;
-        e.preventDefault();
-        self.el.focus();
-        var cmd = btn.getAttribute('data-cmd');
-        var val = btn.getAttribute('data-val') || null;
-        if (cmd === 'formatBlock' && val) {
-          // växla rubrik på/av
-          document.execCommand('formatBlock', false, val);
-        } else {
-          try { document.execCommand(cmd, false, val); } catch (err) {}
-        }
-        self._emit();
-      });
-
-      // Hindra knappar från att stjäla markeringen
-      toolbarEl.addEventListener('mousedown', function (e) {
-        if (e.target.closest('button')) e.preventDefault();
-      });
-
-      editorEl.addEventListener('input', function () { self._emit(); });
-      editorEl.addEventListener('blur', function () { self._emit(); });
-    },
-
-    _emit: function () { if (this._onChange) this._onChange(this.getHtml()); },
-
-    getHtml: function () { return this.el ? this.el.innerHTML : ''; },
-
-    setHtml: function (html) { if (this.el) this.el.innerHTML = html || ''; },
-
-    /** Lägg till text i slutet (t.ex. OCR/PDF/webbimport-resultat). */
-    appendText: function (text) {
-      if (!this.el || !text) return;
-      var safe = String(text)
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      var html = safe.split(/\n{2,}/).map(function (p) {
-        return '<p>' + p.replace(/\n/g, '<br>') + '</p>';
-      }).join('');
-      this.el.innerHTML += html;
-      this._emit();
-    },
-
-    /** Lägg till färdig HTML (t.ex. tolkat recept med rubriker + listor). */
-    appendHtml: function (html) {
-      if (!this.el || !html) return;
-      this.el.innerHTML += html;
-      this._emit();
-    },
-
-    /** Infoga bild i texten (data-URL), som Baltic-editorn (insertHTML <img>). */
-    insertImage: function (dataUrl) {
-      if (!this.el) return;
-      this.el.focus();
-      var img = '<img class="sp-img" alt="" src="' + dataUrl + '">';
-      try { document.execCommand('insertHTML', false, img); }
-      catch (e) { this.el.innerHTML += img; }
-      this._emit();
-    }
-  };
-
-  global.Editor = Editor;
 })(window);
 
 </script>
@@ -1307,6 +1280,108 @@ a{color:var(--brand-2);text-decoration:none}
   }
 
   global.ShopList = { parse: parse, mergeInto: mergeInto, category: category, grouped: grouped, compose: compose };
+})(window);
+
+</script>
+
+<!-- seasons.js -->
+<script>
+/* seasons.js — nordisk säsongskalender: vilka råvaror som är i säsong per månad,
+   samt årstid + tema-färg. Används av säsongsläget för att lyfta recept i säsong. */
+(function (global) {
+  'use strict';
+
+  var MONTHS = ['januari', 'februari', 'mars', 'april', 'maj', 'juni',
+    'juli', 'augusti', 'september', 'oktober', 'november', 'december'];
+
+  // Råvaror i säsong per månad (1–12). Nyckelord matchas mot receptens ingredienser.
+  var BYMONTH = {
+    1: ['rotfrukter', 'palsternacka', 'morötter', 'kål', 'grönkål', 'purjolök', 'rödbeta', 'lök', 'äpple', 'päron', 'vilt', 'gädda', 'sik', 'lingon'],
+    2: ['rotfrukter', 'palsternacka', 'morötter', 'kål', 'grönkål', 'purjolök', 'rödbeta', 'citrus', 'blodapelsin', 'vitkål', 'sik', 'äpple'],
+    3: ['palsternacka', 'morötter', 'rödbeta', 'purjolök', 'kål', 'rabarber', 'sik', 'gädda', 'vitlök', 'lök'],
+    4: ['rabarber', 'sparris', 'morötter', 'sallad', 'rädisa', 'dill', 'sik', 'lax', 'nässlor'],
+    5: ['sparris', 'rabarber', 'nypotatis', 'sallad', 'rädisa', 'dill', 'primörer', 'nässlor', 'lax', 'ramslök'],
+    6: ['jordgubbar', 'sparris', 'nypotatis', 'dill', 'rabarber', 'ärtor', 'sallad', 'rädisa', 'spenat', 'kräftor'],
+    7: ['jordgubbar', 'hallon', 'blåbär', 'körsbär', 'nypotatis', 'squash', 'zucchini', 'tomat', 'böna', 'dill', 'gurka', 'majs'],
+    8: ['kräftor', 'kantareller', 'blåbär', 'hallon', 'plommon', 'tomat', 'majs', 'zucchini', 'böna', 'persika', 'vinbär', 'krusbär'],
+    9: ['kantareller', 'karljohan', 'svamp', 'äpple', 'päron', 'plommon', 'lingon', 'potatis', 'kål', 'pumpa', 'vilt', 'älg', 'morötter', 'rödbeta'],
+    10: ['svamp', 'äpple', 'päron', 'lingon', 'pumpa', 'rotfrukter', 'vilt', 'ren', 'grönkål', 'kål', 'morötter', 'rödbeta'],
+    11: ['rotfrukter', 'kål', 'grönkål', 'lingon', 'vilt', 'ren', 'palsternacka', 'pumpa', 'päron', 'rödbeta', 'purjolök'],
+    12: ['rotfrukter', 'grönkål', 'kål', 'citrus', 'lingon', 'vilt', 'skinka', 'rödkål', 'palsternacka', 'päron', 'purjolök']
+  };
+
+  // Årstid + tema. Vinter 12–2, vår 3–5, sommar 6–8, höst 9–11.
+  var SEASONS = {
+    winter: { label: 'Vinter', emoji: '❄️', months: [12, 1, 2] },
+    spring: { label: 'Vår', emoji: '🌸', months: [3, 4, 5] },
+    summer: { label: 'Sommar', emoji: '☀️', months: [6, 7, 8] },
+    autumn: { label: 'Höst', emoji: '🍂', months: [9, 10, 11] }
+  };
+
+  function seasonKey(month) {
+    for (var k in SEASONS) { if (SEASONS[k].months.indexOf(month) !== -1) return k; }
+    return 'winter';
+  }
+
+  var Seasons = {
+    monthName: function (m) { return MONTHS[(m || 1) - 1] || ''; },
+    ingredients: function (m) { return (BYMONTH[m] || []).slice(); },
+    seasonKey: seasonKey,
+    season: function (m) { var s = SEASONS[seasonKey(m)]; return { key: seasonKey(m), label: s.label, emoji: s.emoji }; }
+  };
+
+  global.Seasons = Seasons;
+})(window);
+
+</script>
+
+<!-- cocktails.js -->
+<script>
+/* cocktails.js — startbibliotek med klassiska cocktails (standardrecept).
+   Varje drink kan läggas till i den egna samlingen som ett vanligt recept (kategori "drink"). */
+(function (global) {
+  'use strict';
+
+  var COCKTAILS = [
+    { name: 'Negroni', glass: 'Lågt glas (rocks)', serves: 1,
+      ing: ['3 cl gin', '3 cl Campari', '3 cl röd vermouth', 'Apelsinskal', 'Isbitar'],
+      steps: ['Fyll ett lågt glas med is.', 'Häll i gin, Campari och vermouth.', 'Rör tills väl kylt.', 'Garnera med apelsinskal.'] },
+    { name: 'Margarita', glass: 'Cocktailglas', serves: 1,
+      ing: ['5 cl tequila (blanco)', '2 cl Cointreau', '2 cl färsk limejuice', 'Salt till glaskanten', 'Is'],
+      steps: ['Fukta glaskanten och doppa i salt.', 'Skaka tequila, Cointreau och lime med is.', 'Sila upp i glaset.', 'Garnera med en limeklyfta.'] },
+    { name: 'Daiquiri', glass: 'Cocktailglas', serves: 1,
+      ing: ['6 cl ljus rom', '2 cl färsk limejuice', '1 cl sockerlag', 'Is'],
+      steps: ['Skaka rom, lime och sockerlag med is tills väl kylt.', 'Sila upp i ett kylt cocktailglas.'] },
+    { name: 'Old Fashioned', glass: 'Lågt glas (rocks)', serves: 1,
+      ing: ['4,5 cl bourbon eller rye', '1 sockerbit', '2 stänk Angostura bitter', 'Lite vatten', 'Apelsinskal', 'Is'],
+      steps: ['Lägg sockerbiten i glaset, droppa på bitter och lite vatten, mortla.', 'Tillsätt en stor isbit och bourbon.', 'Rör tills kylt.', 'Garnera med apelsinskal.'] },
+    { name: 'Mojito', glass: 'Highball', serves: 1,
+      ing: ['4 cl ljus rom', '3 cl färsk limejuice', '2 tsk strösocker', '6–8 myntablad', 'Sodavatten', 'Krossad is'],
+      steps: ['Mortla mynta, socker och lime lätt i glaset.', 'Fyll med krossad is och häll i rom.', 'Toppa med sodavatten och rör om.', 'Garnera med myntakvist.'] },
+    { name: 'Cosmopolitan', glass: 'Cocktailglas', serves: 1,
+      ing: ['4 cl citronvodka', '1,5 cl Cointreau', '1,5 cl tranbärsjuice', '1,5 cl färsk limejuice', 'Is'],
+      steps: ['Skaka alla ingredienser med is.', 'Sila upp i ett kylt cocktailglas.', 'Garnera med citronskal.'] },
+    { name: 'Whiskey Sour', glass: 'Lågt glas', serves: 1,
+      ing: ['4,5 cl bourbon', '3 cl färsk citronjuice', '1,5 cl sockerlag', '1 äggvita (valfritt)', 'Is'],
+      steps: ['Skaka allt hårt med is (extra hårt om du använder äggvita).', 'Sila ner i ett glas med is.', 'Garnera med citronskiva och ev. cocktailbär.'] },
+    { name: 'Gin & Tonic', glass: 'Highball/ballongglas', serves: 1,
+      ing: ['5 cl gin', '10–15 cl tonic', 'Lime eller citron', 'Isbitar'],
+      steps: ['Fyll glaset med is.', 'Häll i gin och toppa med tonic.', 'Rör försiktigt och garnera med citrus.'] },
+    { name: 'Manhattan', glass: 'Cocktailglas', serves: 1,
+      ing: ['5 cl rye eller bourbon', '2 cl röd vermouth', '2 stänk Angostura bitter', 'Is'],
+      steps: ['Rör whisky, vermouth och bitter med is tills väl kylt.', 'Sila upp i ett kylt glas.', 'Garnera med cocktailbär.'] },
+    { name: 'Aperol Spritz', glass: 'Vinglas', serves: 1,
+      ing: ['6 cl Aperol', '9 cl prosecco', '3 cl sodavatten', 'Apelsinskiva', 'Is'],
+      steps: ['Fyll ett vinglas med is.', 'Häll i prosecco, Aperol och soda.', 'Rör lätt och garnera med apelsin.'] },
+    { name: 'Espresso Martini', glass: 'Cocktailglas', serves: 1,
+      ing: ['5 cl vodka', '1 cl kaffelikör', '3 cl färsk espresso (kyld)', '1 cl sockerlag', 'Is'],
+      steps: ['Skaka alla ingredienser mycket hårt med is.', 'Sila upp i ett kylt cocktailglas.', 'Garnera med tre kaffebönor.'] },
+    { name: 'Dry Martini', glass: 'Cocktailglas', serves: 1,
+      ing: ['6 cl gin', '1 cl torr vermouth', 'Citronskal eller oliv', 'Is'],
+      steps: ['Rör gin och vermouth med is tills mycket kallt.', 'Sila upp i ett kylt cocktailglas.', 'Garnera med citronskal eller en oliv.'] }
+  ];
+
+  global.COCKTAILS = COCKTAILS;
 })(window);
 
 </script>
@@ -2782,10 +2857,11 @@ a{color:var(--brand-2);text-decoration:none}
     huvudratt: 'Huvudrätt',
     efterratt: 'Efterrätt',
     bakverk: 'Bakverk',
-    vegetariskt: 'Vegetariskt'
+    vegetariskt: 'Vegetariskt',
+    drink: 'Drink'
   };
 
-  var APP_VERSION = '1.9.4';   // visas under "Om appen"
+  var APP_VERSION = '1.10.0';   // visas under "Om appen"
 
   var $ = function (id) { return document.getElementById(id); };
   var qa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
@@ -2873,6 +2949,8 @@ a{color:var(--brand-2);text-decoration:none}
     $('view-cook').hidden = name !== 'cook';
     $('view-week').hidden = name !== 'week';
     $('view-winefind').hidden = name !== 'winefind';
+    $('view-season').hidden = name !== 'season';
+    $('view-cocktails').hidden = name !== 'cocktails';
     $('backBtn').hidden = name === 'collection';
     $('fab').hidden = name !== 'collection';
     if (name !== 'cook') releaseWake();
@@ -3303,6 +3381,57 @@ a{color:var(--brand-2);text-decoration:none}
     $('wfResults').innerHTML = res.slice(0, 60).map(wineItemHtml).join('') || '<p class="wine-empty">Inga träffar.</p>';
   }
 
+  /* ---------- Säsongsläge ---------- */
+
+  function curMonth() { return new Date().getMonth() + 1; }
+  function cap1(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+
+  function setSeasonTheme() {
+    if (global.Seasons) document.documentElement.setAttribute('data-season', Seasons.seasonKey(curMonth()));
+  }
+  function renderSeasonBanner() {
+    var el = $('seasonBanner'); if (!el || !global.Seasons) return;
+    var m = curMonth(), s = Seasons.season(m), ings = Seasons.ingredients(m).slice(0, 6);
+    el.innerHTML = '<span class="season-emoji">' + s.emoji + '</span>' +
+      '<span>I säsong nu: <b>' + ings.map(function (x) { return escapeHtml(cap1(x)); }).join(', ') + '</b></span>';
+    el.hidden = false;
+  }
+  function openSeason() { showView('season'); renderSeason(); }
+  function renderSeason() {
+    if (!global.Seasons) return;
+    var m = curMonth(), s = Seasons.season(m), ings = Seasons.ingredients(m);
+    $('seasonHead').innerHTML = '<span class="season-emoji">' + s.emoji + '</span> ' + s.label + ' — ' + cap1(Seasons.monthName(m));
+    $('seasonChips').innerHTML = ings.map(function (x) { return '<span class="season-chip">' + escapeHtml(cap1(x)) + '</span>'; }).join('');
+    Store.all().then(function (list) {
+      var matches = list.filter(function (r) {
+        var hay = (r.title + ' ' + stripHtml(r.bodyHtml)).toLowerCase();
+        return ings.some(function (x) { return hay.indexOf(x) !== -1; });
+      });
+      var box = $('seasonRecipes');
+      box.innerHTML = matches.length
+        ? matches.map(function (r) { return '<button class="pick-item" data-open="' + r.id + '">' + escapeHtml(r.title || 'Namnlöst') + '</button>'; }).join('')
+        : '<p class="wine-empty">Inga recept i samlingen matchar säsongens råvaror ännu.</p>';
+    });
+  }
+
+  /* ---------- Cocktailbibliotek ---------- */
+
+  function openCocktails() { showView('cocktails'); renderCocktails(); }
+  function renderCocktails() {
+    var list = global.COCKTAILS || [];
+    $('cocktailList').innerHTML = list.map(function (c, i) {
+      return '<div class="ck-item"><div class="ck-main"><strong>' + escapeHtml(c.name) + '</strong>' +
+        '<span class="ck-meta">' + escapeHtml(c.glass || '') + ' · ' + c.ing.length + ' ingredienser</span></div>' +
+        '<button class="ck-add" data-cocktail="' + i + '">＋ Lägg till</button></div>';
+    }).join('');
+  }
+  function addCocktail(i) {
+    var c = (global.COCKTAILS || [])[i]; if (!c) return;
+    var r = { title: c.name, category: 'drink', servings: c.serves || 1, images: [], source: 'Cocktailbibliotek',
+      bodyHtml: fieldsToHtml('', c.ing.join('\n'), c.steps.join('\n')) };
+    Store.put(r).then(function () { renderCollection(); toast(c.name + ' tillagd i din samling.'); });
+  }
+
   /* ---------- #9 Säkerhetskopierings-påminnelse ---------- */
   function backupCheck() {
     Store.all().then(function (list) {
@@ -3445,7 +3574,8 @@ a{color:var(--brand-2);text-decoration:none}
 
     $('recipeTitle').value = r.title || '';
     if ($('recipeServings')) $('recipeServings').value = r.servings ? r.servings : '';
-    Editor.setHtml(r.bodyHtml || '');
+    var f = htmlToFields(r.bodyHtml || '');
+    $('edIntro').value = f.intro; $('edIng').value = f.ing; $('edSteps').value = f.steps;
     renderCatPicker();
     renderGallery();
     showView('edit');
@@ -3486,10 +3616,76 @@ a{color:var(--brand-2);text-decoration:none}
     r.title = $('recipeTitle').value.trim() || 'Namnlöst recept';
     r.category = state.category;
     r.images = state.images.slice();
-    r.bodyHtml = Editor.getHtml();
+    r.bodyHtml = fieldsToHtml($('edIntro').value, $('edIng').value, $('edSteps').value);
     var sv = $('recipeServings') ? parseInt($('recipeServings').value, 10) : NaN;
     r.servings = (sv && sv > 0) ? sv : null;
     return r;
+  }
+
+  /* ---------- Strukturerad editor: textfält ↔ recept-HTML ---------- */
+
+  function nodeText(n) { return (n.textContent || '').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, ''); }
+
+  // Plocka isär bodyHtml till { intro, ing, steps } (rader) — bevarar delrubriker.
+  function htmlToFields(html) {
+    var d = document.createElement('div'); d.innerHTML = html || '';
+    var intro = [], ing = [], steps = [], section = 'pre';
+    Array.prototype.slice.call(d.childNodes).forEach(function (n) {
+      if (n.nodeType !== 1) return;
+      var tag = n.tagName.toLowerCase();
+      if (tag === 'h2') {
+        var t = nodeText(n).toLowerCase();
+        section = /gör|tillag|method|instruction|direction|steg/.test(t) ? 'steps' : (/ingred/.test(t) ? 'ing' : section);
+        return;
+      }
+      if (tag === 'ul') { qa('li', n).forEach(function (li) { ing.push(nodeText(li)); }); return; }
+      if (tag === 'ol') { qa('li', n).forEach(function (li) { steps.push(nodeText(li)); }); return; }
+      if (tag === 'p') {
+        if (n.classList.contains('ing-sub')) { ing.push(nodeText(n).replace(/:?\s*$/, '') + ':'); }
+        else if (section === 'steps') steps.push(nodeText(n));
+        else if (section === 'ing') ing.push(nodeText(n));
+        else intro.push(nodeText(n));
+      }
+    });
+    return { intro: intro.filter(Boolean).join('\n'), ing: ing.filter(Boolean).join('\n'), steps: steps.filter(Boolean).join('\n') };
+  }
+
+  // Bygg bodyHtml av de tre fälten. Rad som slutar med ":" blir delrubrik i ingredienser.
+  function fieldsToHtml(intro, ing, steps) {
+    var html = '';
+    intro = (intro || '').replace(/^\s+|\s+$/g, '');
+    if (intro) intro.split(/\n+/).forEach(function (l) { l = l.trim(); if (l) html += '<p>' + escapeHtml(l) + '</p>'; });
+
+    var ingLines = (ing || '').split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+    if (ingLines.length) {
+      html += '<h2>Ingredienser</h2>';
+      var buf = '';
+      function flush() { if (buf) { html += '<ul>' + buf + '</ul>'; buf = ''; } }
+      ingLines.forEach(function (l) {
+        if (/:$/.test(l) && l.length <= 40) { flush(); html += '<p class="ing-sub"><strong>' + escapeHtml(l.replace(/:$/, '')) + '</strong></p>'; }
+        else buf += '<li>' + escapeHtml(l) + '</li>';
+      });
+      flush();
+    }
+
+    var stepLines = (steps || '').split('\n').map(function (l) { return l.replace(/^\s*\d+[.)]\s*/, '').trim(); }).filter(Boolean);
+    if (stepLines.length) {
+      html += '<h2>Gör så här</h2><ol>' + stepLines.map(function (l) { return '<li>' + escapeHtml(l) + '</li>'; }).join('') + '</ol>';
+    }
+    return html;
+  }
+
+  // Lägg importerad recept-HTML i rätt fält.
+  function appendToArea(id, text) {
+    if (!text) return;
+    var el = $(id); var cur = el.value.replace(/\s+$/, '');
+    el.value = (cur ? cur + '\n' : '') + text;
+  }
+  function importIntoFields(html) {
+    var f = htmlToFields(html);
+    if (f.ing) appendToArea('edIng', f.ing);
+    if (f.steps) appendToArea('edSteps', f.steps);
+    if (f.intro) appendToArea('edIntro', f.intro);
   }
 
   function saveRecipe() {
@@ -3576,11 +3772,11 @@ a{color:var(--brand-2);text-decoration:none}
       }
       var res = structureText(raw);
       if (!$('recipeTitle').value.trim() && res.title) $('recipeTitle').value = res.title;
-      if (res.html) Editor.appendHtml(res.html);
-      else Editor.appendText(raw);
+      if (res.html) importIntoFields(res.html);
+      else appendToArea('edIntro', raw);
       toast(total > 1
-        ? (total + ' bilder tolkade och strukturerade — granska i editorn.')
-        : 'Texten tolkad och strukturerad — granska i editorn.');
+        ? (total + ' bilder tolkade och strukturerade — granska i fälten.')
+        : 'Texten tolkad och strukturerad — granska i fälten.');
     }).catch(function (err) {
       clearBusy(); toast(err && err.message ? err.message : 'Skanningen misslyckades.');
     });
@@ -3633,8 +3829,8 @@ a{color:var(--brand-2);text-decoration:none}
         else if (structured.title) $('recipeTitle').value = structured.title;
       }
       var note = res.ocr ? ' (tolkad som skannad bild)' : '';
-      if (structured.html) { Editor.appendHtml(structured.html); toast('PDF importerad och strukturerad' + note + ' — granska i editorn.'); }
-      else if (res.text) { Editor.appendText(res.text); toast('PDF importerad' + note + ' — granska i editorn.'); }
+      if (structured.html) { importIntoFields(structured.html); toast('PDF importerad och strukturerad' + note + ' — granska i fälten.'); }
+      else if (res.text) { appendToArea('edIntro', res.text); toast('PDF importerad' + note + ' — granska i fälten.'); }
       else toast('Kunde inte läsa text ur PDF:en. Prova "Skanna recept" med ett foto i stället.');
     }).catch(function (err) {
       clearBusy(); toast(err && err.message ? err.message : 'Kunde inte läsa PDF:en.');
@@ -3648,7 +3844,7 @@ a{color:var(--brand-2);text-decoration:none}
     WebImport.fromUrl(url).then(function (res) {
       clearBusy();
       if (!$('recipeTitle').value.trim() && res.title) $('recipeTitle').value = res.title;
-      if (res.html) { Editor.appendHtml(res.html); toast('Recept importerat — granska i editorn.'); }
+      if (res.html) { importIntoFields(res.html); toast('Recept importerat — granska i fälten.'); }
       else toast('Hittade inget recept på sidan. Prova "Klistra in recept" istället.');
       // Bädda in receptbilden i receptet (sparas lokalt → funkar offline).
       if (res.image) {
@@ -3669,22 +3865,21 @@ a{color:var(--brand-2);text-decoration:none}
     if (!text) return;
     var res = WebImport.fromText(text);
     if (!$('recipeTitle').value.trim() && res.title) $('recipeTitle').value = res.title;
-    Editor.appendHtml(res.html);
-    toast('Texten infogad och strukturerad — granska i editorn.');
+    importIntoFields(res.html);
+    toast('Texten infogad och strukturerad — granska i fälten.');
   }
 
   // Översätt receptets text i editorn till svenska (maskinöversättning, kräver internet).
   function translateEditor() {
     if (!global.Translate) { toast('Översättning är inte tillgänglig.'); return; }
-    var html = Editor.getHtml();
+    var html = fieldsToHtml($('edIntro').value, $('edIng').value, $('edSteps').value);
     var title = $('recipeTitle').value.trim();
-    var plain = html.replace(/<[^>]*>/g, '').trim();
-    if (!plain && !title) { toast('Det finns ingen text att översätta.'); return; }
+    if (!html.replace(/<[^>]*>/g, '').trim() && !title) { toast('Det finns ingen text att översätta.'); return; }
     setBusy('Översätter till svenska…');
     var pTitle = title ? Translate.text(title, 'sv') : Promise.resolve(title);
     Promise.all([Translate.html(html, 'sv'), pTitle]).then(function (res) {
       clearBusy();
-      if (res[0]) Editor.setHtml(res[0]);
+      if (res[0]) { var f = htmlToFields(res[0]); $('edIntro').value = f.intro; $('edIng').value = f.ing; $('edSteps').value = f.steps; }
       if (res[1]) $('recipeTitle').value = res[1];
       toast('Översatt till svenska — granska och spara.');
     }).catch(function () {
@@ -3783,6 +3978,8 @@ a{color:var(--brand-2);text-decoration:none}
       case 'print-recipe': printRecipe(); break;
       case 'week': closeMenu(); openWeek(); break;
       case 'week-shop': weekToShopping(); break;
+      case 'season': closeMenu(); openSeason(); break;
+      case 'cocktails': closeMenu(); openCocktails(); break;
       case 'shop-add': addShopItem(); break;
       case 'shop-clear-done': shopClearDone(); break;
       case 'shop-clear-all': shopClearAll(); break;
@@ -3885,6 +4082,15 @@ a{color:var(--brand-2);text-decoration:none}
     $('wfQuery').addEventListener('input', function (e) { wfState.q = e.target.value; renderWineFinder(); });
     $('wfPrice').addEventListener('input', function (e) { wfState.pmax = parseFloat(e.target.value) || 0; renderWineFinder(); });
 
+    // Säsong: öppna recept
+    $('seasonRecipes').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-open]'); if (b) openReader(b.getAttribute('data-open'));
+    });
+    // Cocktailbibliotek: lägg till
+    $('cocktailList').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-cocktail]'); if (b) addCocktail(parseInt(b.getAttribute('data-cocktail'), 10));
+    });
+
     // Filinmatningar
     $('filePhoto').addEventListener('change', function (e) {
       var files = e.target.files;
@@ -3906,7 +4112,6 @@ a{color:var(--brand-2);text-decoration:none}
   /* ---------- Start ---------- */
 
   function init() {
-    Editor.init($('editor'), $('editorToolbar'));
     bind();
 
     // Fyll i versionsnummer där det visas (meny + Om appen)
@@ -3918,6 +4123,8 @@ a{color:var(--brand-2);text-decoration:none}
       state.filter = s.filter;
       qa('#filters .chip').forEach(function (x) { x.classList.toggle('is-active', x.getAttribute('data-cat') === s.filter); });
     }
+    setSeasonTheme();
+    renderSeasonBanner();
     renderCollection();
     showView('collection');
     backupCheck();
