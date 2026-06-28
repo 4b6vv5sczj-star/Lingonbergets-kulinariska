@@ -919,13 +919,96 @@ Grädda i 20 minuter."></textarea>
   <input type="file" id="fileCollection" accept="application/json,.json" hidden>
 </div>
 
-<!-- Service worker: network-first → alltid senaste versionen, men funkar offline -->
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function () {
-    navigator.serviceWorker.register('sw.js').catch(function () {});
-  });
+<!-- Service worker: network-first → alltid senaste versionen, men funkar offline.
+     Auto-uppdatering: ny version tas i bruk automatiskt när det är säkert
+     (aldrig mitt i en redigering), och dina recept/data i IndexedDB rörs aldrig. -->
+<style>
+#sw-update{
+  position:fixed;z-index:90;left:50%;bottom:calc(84px + var(--safe-bottom,0px));
+  transform:translateX(-50%);display:flex;align-items:center;gap:12px;
+  background:var(--surface-3);border:1px solid var(--line-2);color:var(--ink);
+  padding:9px 11px 9px 16px;border-radius:12px;box-shadow:var(--shadow);
+  font-size:14px;max-width:92vw;animation:swUpIn .25s ease both;
 }
+#sw-update[hidden]{display:none}
+#sw-update button{
+  background:var(--brand);color:#fff;border:0;border-radius:9px;
+  padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer;flex:0 0 auto;
+}
+#sw-update button:active{background:var(--brand-2)}
+@keyframes swUpIn{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+</style>
+<script>
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+
+  var refreshing   = false;   // skyddar mot dubbel omladdning
+  var pendingWorker = null;   // den installerade, väntande versionen
+
+  // Ladda om EN gång när den nya versionen tagit över kontrollen.
+  // (En omladdning tömmer aldrig IndexedDB — recepten finns kvar.)
+  navigator.serviceWorker.addEventListener('controllerchange', function () {
+    if (refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
+
+  // Är användaren mitt i att skriva? Då skjuter vi upp omladdningen.
+  function isEditing() {
+    var el = document.activeElement;
+    if (!el) return false;
+    return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable === true;
+  }
+
+  function applyUpdate() {
+    if (pendingWorker) pendingWorker.postMessage({ type: 'SKIP_WAITING' });
+  }
+
+  // Applicera automatiskt om inget redigeras; annars vänta (banner ligger kvar).
+  function maybeAutoApply() {
+    if (pendingWorker && !isEditing()) applyUpdate();
+  }
+
+  function showBanner(worker) {
+    pendingWorker = worker;
+    var bar = document.getElementById('sw-update');
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.id = 'sw-update';
+      bar.innerHTML = '<span>🔄 Ny version finns</span><button type="button">Uppdatera</button>';
+      bar.querySelector('button').addEventListener('click', applyUpdate);
+      (document.body || document.documentElement).appendChild(bar);
+    }
+    bar.hidden = false;
+    maybeAutoApply();
+  }
+
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
+    .then(function (reg) {
+      // En uppdatering kan redan vänta när sidan öppnas.
+      if (reg.waiting && navigator.serviceWorker.controller) showBanner(reg.waiting);
+
+      // Upptäck nya versioner medan appen är öppen.
+      reg.addEventListener('updatefound', function () {
+        var sw = reg.installing;
+        if (!sw) return;
+        sw.addEventListener('statechange', function () {
+          if (sw.state === 'installed' && navigator.serviceWorker.controller) {
+            showBanner(sw);
+          }
+        });
+      });
+
+      // Leta efter ny version regelbundet och när appen återfår fokus.
+      function check() { reg.update().catch(function () {}); }
+      setInterval(check, 60 * 60 * 1000);                 // en gång i timmen
+      window.addEventListener('focus', check);
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) { check(); maybeAutoApply(); }
+      });
+    })
+    .catch(function () {});
+})();
 </script>
 
 <!-- store.js -->
@@ -3164,7 +3247,7 @@ if ('serviceWorker' in navigator) {
     drink: 'Drink'
   };
 
-  var APP_VERSION = '1.14.0';   // visas under "Om appen"
+  var APP_VERSION = '1.15.0';   // visas under "Om appen"
 
   var $ = function (id) { return document.getElementById(id); };
   var qa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
