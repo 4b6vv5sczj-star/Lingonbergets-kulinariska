@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="dark">
 <title>Lingonbergets kulinariska samling</title>
 <!-- ============================================================= -->
-<!--  LINGONBERGET v1.11.0 — SJÄLVSTÄNDIG VERSION              -->
+<!--  LINGONBERGET v1.12.1 — SJÄLVSTÄNDIG VERSION              -->
 <!--  All CSS och JavaScript är inbakad i denna enda fil.          -->
 <!--  DETTA ÄR DEN NYA FILEN som ska ligga som index.html.         -->
 <!-- ============================================================= -->
@@ -444,15 +444,18 @@ a{color:var(--brand-2);text-decoration:none}
 /* ===== Utskrift / PDF ===== */
 @media print{
   body{background:#fff !important;color:#000 !important}
-  .topbar,.fab,.action-bar,.reader-actions,.rate-row,.scaler,.menu,.sheet-backdrop,.busy,.toast,.gallery-strip{display:none !important}
+  .topbar,.fab,.action-bar,.reader-actions,.rate-row,.scaler,.tech-row,.menu,.sheet-backdrop,.busy,.toast,.gallery-strip,.field-label,#menuCardTitle,.season-banner{display:none !important}
   .view{max-width:none;padding:0}
-  #view-read{display:block !important}
   .reader .tag{color:#444;border-color:#bbb;background:#f3f3f3}
   .reader h1{font-size:24px}
   .reader .body{font-size:13pt;color:#000}
   .reader .body h2{color:#000}
   .reader .hero{max-height:240px}
   .ing-sub{color:#000}
+  .menu-card{background:#fffdf7 !important;border:1px solid #d8cfc0;color:#1a1a1a;max-width:520px;margin:0 auto;box-shadow:none}
+  .mc-title,.mc-name{color:#1a1a1a}
+  .mc-label,.mc-rule{color:#9a2740}
+  .mc-date,.mc-foot{color:#555}
 }
 
 /* ===== Säsong (guide + tema) ===== */
@@ -481,6 +484,34 @@ a{color:var(--brand-2);text-decoration:none}
 .ck-add{flex:0 0 auto;padding:9px 13px;border-radius:999px;font-size:13px;font-weight:600;
   background:var(--surface-3);border:1px solid var(--line-2);color:var(--ink)}
 .ck-add:active{background:var(--brand);border-color:var(--brand)}
+
+/* ===== Menykort ===== */
+.menu-card{margin:10px 0 6px;padding:32px 26px;border-radius:16px;border:1px solid var(--line-2);
+  background:radial-gradient(circle at 50% -10%,rgba(193,48,74,.12),transparent 65%),var(--surface);
+  text-align:center;font-family:var(--serif)}
+.mc-title{font-size:26px;font-weight:600;color:var(--ink);line-height:1.2}
+.mc-date{font-size:13px;color:var(--faint);margin-top:6px;font-family:var(--sans)}
+.mc-rule{color:var(--lingon);margin:18px 0;font-size:13px;letter-spacing:8px}
+.mc-course{margin:16px 0}
+.mc-label{font-size:11px;text-transform:uppercase;letter-spacing:.18em;color:var(--lingon);font-family:var(--sans)}
+.mc-name{font-size:19px;color:var(--ink);margin-top:4px;line-height:1.3}
+.mc-foot{margin-top:26px;font-size:11px;color:var(--faint);font-family:var(--sans);letter-spacing:.04em}
+
+/* ===== Middagsmeny ===== */
+.dinner-list{display:flex;flex-direction:column;gap:10px;margin-bottom:6px}
+.dinner-course{display:flex;align-items:center;gap:10px;padding:12px 13px;border-radius:12px;
+  background:var(--surface);border:1px solid var(--line)}
+.dinner-label{flex:0 0 84px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--brand-2);font-weight:700}
+.dinner-pick{flex:1;min-width:0}
+.dinner-recipe{text-align:left;background:none;border:0;color:var(--ink);font-family:var(--serif);font-size:15.5px;padding:0}
+.dinner-recipe:active{color:var(--brand-2)}
+
+/* ===== Sök recept online ===== */
+.rs-item{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;
+  padding:12px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--line);color:var(--ink);width:100%}
+.rs-item:active{background:var(--surface-2)}
+.rs-title{font-family:var(--serif);font-size:15px;line-height:1.3}
+.rs-dom{font-size:12px;color:var(--brand-2)}
 
 /* ===== Tekniker ===== */
 .tech-row{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:0 0 14px}
@@ -528,11 +559,13 @@ a{color:var(--brand-2);text-decoration:none}
   <div class="sheet-backdrop" id="menuBackdrop" hidden></div>
   <nav class="menu" id="menu" hidden>
     <button data-action="new">＋ Nytt recept</button>
+    <button data-action="recipesearch">🌐 Sök recept online</button>
     <button data-action="open-icloud">☁︎ Öppna recept från iCloud / Filer</button>
     <button data-action="export-all">⤓ Exportera hela samlingen (säkerhetskopia)</button>
     <button data-action="import-all">⤒ Importera samling (.json)</button>
     <button data-action="shop">🛒 Inköpslista</button>
     <button data-action="week">📅 Veckomeny</button>
+    <button data-action="dinner">🍽️ Skapa middagsmeny</button>
     <button data-action="season">🌿 Säsong</button>
     <button data-action="tech">📖 Tekniker</button>
     <button data-action="tools">🔁 Enhetsomvandlare</button>
@@ -780,6 +813,53 @@ Grädda i 20 minuter."></textarea>
       <h1>Cocktailbibliotek</h1>
       <p class="lead">Klassiska cocktails. Tryck "Lägg till" så hamnar drinken i din samling under kategorin Drink.</p>
       <div id="cocktailList" class="ck-list"></div>
+    </article>
+  </main>
+
+  <!-- ===== View: Dinner menu ===== -->
+  <main class="view" id="view-dinner" hidden>
+    <article class="reader">
+      <h1>Middagsmeny</h1>
+      <p class="lead">En trerätters ur din samling. Slumpa om, byt rätt, och bygg inköpslistan för hela menyn.</p>
+      <div id="dinnerList" class="dinner-list"></div>
+      <div class="action-bar">
+        <button class="btn" data-action="dinner-wine">🍷 Vin</button>
+        <button class="btn" data-action="dinner-shop">🛒 Lista</button>
+        <button class="btn" data-action="menucard">🧾 Menykort</button>
+        <button class="btn btn-primary" data-action="dinner-shuffle">🎲 Slumpa</button>
+      </div>
+    </article>
+  </main>
+
+  <!-- ===== View: Menu card ===== -->
+  <main class="view" id="view-menucard" hidden>
+    <article class="reader">
+      <label class="field-label">Rubrik på menykortet</label>
+      <input id="menuCardTitle" class="shop-input" type="text" placeholder="Middagsmeny" autocomplete="off">
+      <div class="menu-card" id="menuCard"></div>
+      <div class="action-bar">
+        <button class="btn" data-action="share-menu">⤴ Dela</button>
+        <button class="btn btn-primary" data-action="print-menucard">⎙ Skriv ut / spara PDF</button>
+      </div>
+    </article>
+  </main>
+
+  <!-- ===== View: Recipe search online ===== -->
+  <main class="view" id="view-recipesearch" hidden>
+    <article class="reader">
+      <h1>Sök recept online</h1>
+      <p class="lead">Sök på webben och importera recept till din samling. Tryck på en träff för att hämta in receptet.</p>
+      <div class="conv-tabs" id="rsSources">
+        <button type="button" class="conv-tab is-active" data-rs-site="">Alla</button>
+        <button type="button" class="conv-tab" data-rs-site="koket.se">Köket.se</button>
+        <button type="button" class="conv-tab" data-rs-site="ica.se">ICA</button>
+        <button type="button" class="conv-tab" data-rs-site="arla.se">Arla</button>
+      </div>
+      <div class="shop-add-row">
+        <input id="rsQuery" class="shop-input" type="text" placeholder="t.ex. lammgryta, laxpasta…" autocomplete="off">
+        <button class="btn btn-primary" data-action="rs-search">Sök</button>
+      </div>
+      <div id="rsResults" class="pick-list"></div>
     </article>
   </main>
 
@@ -2819,6 +2899,78 @@ Grädda i 20 minuter."></textarea>
 
 </script>
 
+<!-- recipesearch.js -->
+<script>
+/* recipesearch.js — sök recept på webben och importera. En webbapp kan inte söka
+   fritt på nätet, men DuckDuckGos HTML-version är serverrenderad och kan läsas via en
+   CORS-vänlig proxy. Vi söker, plockar ut träffarnas länkar och låter användaren
+   importera valt recept med den vanliga webbimporten. Best-effort — sajter kan blockera. */
+(function (global) {
+  'use strict';
+
+  var PROXIES = [
+    function (u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
+    function (u) { return 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(u); },
+    function (u) { return 'https://corsproxy.io/?url=' + encodeURIComponent(u); }
+  ];
+
+  function fetchHtml(url) {
+    var i = 0;
+    function tryNext() {
+      if (i >= PROXIES.length) return Promise.reject(new Error('Sökningen kunde inte nås.'));
+      return fetch(PROXIES[i++](url)).then(function (r) {
+        if (!r.ok) throw new Error('status');
+        return r.text();
+      }).then(function (t) {
+        if (!t || t.length < 200) throw new Error('tomt');
+        return t;
+      }).catch(function () { return tryNext(); });
+    }
+    return tryNext();
+  }
+
+  // DuckDuckGo-träffar länkar via en redirect: ...?uddg=<urlkodad riktig url>.
+  function realUrl(href) {
+    if (!href) return null;
+    var m = href.match(/[?&]uddg=([^&]+)/);
+    if (m) { try { return decodeURIComponent(m[1]); } catch (e) { return null; } }
+    if (/^https?:\/\//i.test(href)) return href;
+    return null;
+  }
+
+  var SKIP = /youtube\.|pinterest\.|wikipedia\.|facebook\.|instagram\.|tiktok\.|reddit\.|duckduckgo\./i;
+
+  var RecipeSearch = {
+    /** Sök. site (valfritt) begränsar till en domän, t.ex. "ica.se". Returnerar [{ title, url, domain }]. */
+    search: function (query, site) {
+      var q = (query || '').trim();
+      if (!q) return Promise.resolve([]);
+      var terms = q + ' recept' + (site ? ' site:' + site : '');
+      var url = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(terms);
+      return fetchHtml(url).then(function (html) {
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+        var anchors = doc.querySelectorAll('a[href*="uddg="], a.result__a');
+        var out = [], seen = {};
+        Array.prototype.slice.call(anchors).forEach(function (a) {
+          var real = realUrl(a.getAttribute('href') || '');
+          if (!real) return;
+          var dom = ((real.match(/^https?:\/\/([^\/]+)/) || [])[1] || '').replace(/^www\./, '');
+          if (!dom || SKIP.test(dom)) return;
+          var title = (a.textContent || '').replace(/\s+/g, ' ').trim();
+          if (!title || seen[real]) return;
+          seen[real] = 1;
+          out.push({ title: title, url: real, domain: dom });
+        });
+        return out.slice(0, 15);
+      });
+    }
+  };
+
+  global.RecipeSearch = RecipeSearch;
+})(window);
+
+</script>
+
 <!-- icloud.js -->
 <script>
 /* icloud.js — spara/öppna recept som filer.
@@ -2933,7 +3085,7 @@ Grädda i 20 minuter."></textarea>
     drink: 'Drink'
   };
 
-  var APP_VERSION = '1.11.0';   // visas under "Om appen"
+  var APP_VERSION = '1.12.1';   // visas under "Om appen"
 
   var $ = function (id) { return document.getElementById(id); };
   var qa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
@@ -3024,6 +3176,9 @@ Grädda i 20 minuter."></textarea>
     $('view-season').hidden = name !== 'season';
     $('view-cocktails').hidden = name !== 'cocktails';
     $('view-tech').hidden = name !== 'tech';
+    $('view-recipesearch').hidden = name !== 'recipesearch';
+    $('view-dinner').hidden = name !== 'dinner';
+    $('view-menucard').hidden = name !== 'menucard';
     $('backBtn').hidden = name === 'collection';
     $('fab').hidden = name !== 'collection';
     if (name !== 'cook') releaseWake();
@@ -3182,6 +3337,8 @@ Grädda i 20 minuter."></textarea>
       if (add) { addWineToShopping(add.getAttribute('data-wine')); toast('Vinet tillagt i inköpslistan.'); return; }
       var pk = e.target.closest('[data-pick]');
       if (pk) {
+        var course = pk.getAttribute('data-course');
+        if (course != null) { dinnerState[course] = pk.getAttribute('data-pick'); closeSheet(); renderDinner(); return; }
         var day = parseInt(pk.getAttribute('data-day'), 10);
         var plan = Store.getPlan(); plan[day] = pk.getAttribute('data-pick'); Store.setPlan(plan);
         closeSheet(); renderWeek(); return;
@@ -3949,7 +4106,10 @@ Grädda i 20 minuter."></textarea>
 
   function importUrl() {
     var url = global.prompt('Klistra in länk till receptet (t.ex. köket.se eller Pinterest):', '');
-    if (!url) return;
+    if (url) importFromUrl(url);
+  }
+
+  function importFromUrl(url) {
     setBusy('Hämtar receptet…');
     WebImport.fromUrl(url).then(function (res) {
       clearBusy();
@@ -3968,6 +4128,115 @@ Grädda i 20 minuter."></textarea>
       clearBusy();
       toast('Kunde inte hämta länken (sajten kan blockera). Prova "Klistra in recept".');
     });
+  }
+
+  /* ---------- Sök recept online ---------- */
+
+  var rsState = { site: '' };
+  function openRecipeSearch() { showView('recipesearch'); setTimeout(function () { $('rsQuery').focus(); }, 60); }
+  function doRecipeSearch() {
+    var q = ($('rsQuery').value || '').trim();
+    if (!q) { toast('Skriv vad du vill söka efter.'); return; }
+    if (!global.RecipeSearch) { toast('Sökningen är inte tillgänglig.'); return; }
+    setBusy('Söker recept…');
+    RecipeSearch.search(q, rsState.site).then(function (res) {
+      clearBusy();
+      var box = $('rsResults');
+      if (!res.length) { box.innerHTML = '<p class="wine-empty">Inga träffar. Prova andra ord eller en annan källa.</p>'; return; }
+      box.innerHTML = res.map(function (r) {
+        return '<button class="rs-item" data-rs-url="' + escapeHtml(r.url) + '"><span class="rs-title">' + escapeHtml(r.title) + '</span><span class="rs-dom">' + escapeHtml(r.domain) + '</span></button>';
+      }).join('');
+    }).catch(function () { clearBusy(); toast('Kunde inte söka just nu (tjänsten kan blockera). Försök igen.'); });
+  }
+  function addFromSearch(url) { openEditor(null); importFromUrl(url); }
+
+  /* ---------- Skapa middagsmeny (trerätters) ---------- */
+
+  var DINNER = [['forratt', 'Förrätt'], ['huvudratt', 'Huvudrätt'], ['efterratt', 'Efterrätt']];
+  var dinnerState = {};
+  var dinnerRecipes = [];
+
+  function dByCat(cat) { return dinnerRecipes.filter(function (r) { return r.category === cat; }); }
+  function dRand(cat) { var a = dByCat(cat); return a.length ? a[Math.floor(Math.random() * a.length)].id : null; }
+
+  function openDinner() {
+    showView('dinner');
+    Store.all().then(function (list) {
+      dinnerRecipes = list;
+      if (!dinnerState.forratt && !dinnerState.huvudratt && !dinnerState.efterratt) shuffleDinner();
+      else renderDinner();
+    });
+  }
+  function shuffleDinner() { DINNER.forEach(function (c) { dinnerState[c[0]] = dRand(c[0]); }); renderDinner(); }
+  function shuffleCourse(cat) { dinnerState[cat] = dRand(cat); renderDinner(); }
+
+  function renderDinner() {
+    var byId = {}; dinnerRecipes.forEach(function (r) { byId[r.id] = r; });
+    $('dinnerList').innerHTML = DINNER.map(function (c) {
+      var r = byId[dinnerState[c[0]]];
+      return '<div class="dinner-course"><div class="dinner-label">' + c[1] + '</div>' +
+        '<div class="dinner-pick">' + (r ? '<button class="dinner-recipe" data-open="' + r.id + '">' + escapeHtml(r.title) + '</button>'
+          : '<span class="week-empty">— inget ' + c[1].toLowerCase() + 'srecept —</span>') + '</div>' +
+        '<div class="week-act"><button data-dinner-rand="' + c[0] + '" aria-label="Slumpa">🎲</button>' +
+        '<button data-dinner-pick="' + c[0] + '">Välj</button></div></div>';
+    }).join('');
+  }
+  function openDinnerPicker(cat) {
+    var a = dByCat(cat);
+    var label = (DINNER.filter(function (c) { return c[0] === cat; })[0] || ['', ''])[1].toLowerCase();
+    if (!a.length) { toast('Du har inga recept i kategorin ' + label + '.'); return; }
+    var body = '<div class="wine-head"><h2>Välj ' + escapeHtml(label) + '</h2></div><div class="pick-list">' +
+      a.map(function (r) { return '<button class="pick-item" data-pick="' + r.id + '" data-course="' + cat + '">' + escapeHtml(r.title || 'Namnlöst') + '</button>'; }).join('') +
+      '</div><div class="wine-foot"><button class="btn btn-primary" data-sheet-close="1">Stäng</button></div>';
+    openSheet(body);
+  }
+  function dinnerToShopping() {
+    var byId = {}; dinnerRecipes.forEach(function (r) { byId[r.id] = r; });
+    var total = 0;
+    DINNER.forEach(function (c) {
+      var r = byId[dinnerState[c[0]]]; if (!r) return;
+      total += addIngredients(textFromHtml(r.bodyHtml, 'ul li').filter(isIngredientish), r.title);
+    });
+    if (!total) { toast('Slumpa eller välj rätter till menyn först.'); return; }
+    toast('Inköpslista byggd från middagsmenyn.'); openShop();
+  }
+  function dinnerWine() {
+    var byId = {}; dinnerRecipes.forEach(function (r) { byId[r.id] = r; });
+    var main = byId[dinnerState.huvudratt];
+    if (!main) { toast('Välj en huvudrätt först.'); return; }
+    state.editing = main; suggestWine();
+  }
+
+  /* ---------- Menykort ---------- */
+
+  function openMenuCard() {
+    showView('menucard');
+    if (!$('menuCardTitle').value) $('menuCardTitle').value = 'Middagsmeny';
+    if (dinnerRecipes.length) renderMenuCard();
+    else Store.all().then(function (l) { dinnerRecipes = l; renderMenuCard(); });
+  }
+  function renderMenuCard() {
+    var byId = {}; dinnerRecipes.forEach(function (r) { byId[r.id] = r; });
+    var title = ($('menuCardTitle').value || 'Meny').trim();
+    var date = new Date().toLocaleDateString('sv-SE', { year: 'numeric', month: 'long', day: 'numeric' });
+    var courses = DINNER.map(function (c) { var r = byId[dinnerState[c[0]]]; return r ? { label: c[1], name: r.title } : null; }).filter(Boolean);
+    $('menuCard').innerHTML =
+      '<div class="mc-title">' + escapeHtml(title) + '</div>' +
+      '<div class="mc-date">' + escapeHtml(date) + '</div>' +
+      '<div class="mc-rule">✦ ✦ ✦</div>' +
+      (courses.length ? courses.map(function (c) {
+        return '<div class="mc-course"><div class="mc-label">' + escapeHtml(c.label) + '</div><div class="mc-name">' + escapeHtml(c.name) + '</div></div>';
+      }).join('') : '<p class="week-empty">Slumpa en meny först.</p>') +
+      '<div class="mc-foot">Lingonbergets kulinariska samling</div>';
+  }
+  function shareMenu() {
+    var byId = {}; dinnerRecipes.forEach(function (r) { byId[r.id] = r; });
+    var lines = [($('menuCardTitle').value || 'Meny').trim(), ''];
+    DINNER.forEach(function (c) { var r = byId[dinnerState[c[0]]]; if (r) lines.push(c[1] + ': ' + r.title); });
+    var txt = lines.join('\n');
+    if (navigator.share) { navigator.share({ title: 'Meny', text: txt }).catch(function () {}); }
+    else if (navigator.clipboard) { navigator.clipboard.writeText(txt).then(function () { toast('Menyn kopierad.'); }, function () { toast('Kunde inte dela.'); }); }
+    else { toast('Delning stöds inte här.'); }
   }
 
   function importPaste() {
@@ -4091,6 +4360,15 @@ Grädda i 20 minuter."></textarea>
       case 'season': closeMenu(); openSeason(); break;
       case 'cocktails': closeMenu(); openCocktails(); break;
       case 'tech': closeMenu(); closeSheet(); openTech(); break;
+      case 'recipesearch': closeMenu(); openRecipeSearch(); break;
+      case 'rs-search': doRecipeSearch(); break;
+      case 'dinner': closeMenu(); openDinner(); break;
+      case 'dinner-shuffle': shuffleDinner(); break;
+      case 'dinner-shop': dinnerToShopping(); break;
+      case 'dinner-wine': dinnerWine(); break;
+      case 'menucard': openMenuCard(); break;
+      case 'print-menucard': window.print(); break;
+      case 'share-menu': shareMenu(); break;
       case 'shop-add': addShopItem(); break;
       case 'shop-clear-done': shopClearDone(); break;
       case 'shop-clear-all': shopClearAll(); break;
@@ -4184,6 +4462,28 @@ Grädda i 20 minuter."></textarea>
 
     // Tekniker – sök
     $('techSearch').addEventListener('input', renderTech);
+
+    // Menykort – uppdatera rubrik
+    $('menuCardTitle').addEventListener('input', renderMenuCard);
+
+    // Sök recept online
+    $('rsResults').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-rs-url]'); if (b) addFromSearch(b.getAttribute('data-rs-url'));
+    });
+    $('rsQuery').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); doRecipeSearch(); } });
+    $('rsSources').addEventListener('click', function (e) {
+      var t = e.target.closest('.conv-tab'); if (!t) return;
+      rsState.site = t.getAttribute('data-rs-site') || '';
+      qa('#rsSources .conv-tab').forEach(function (x) { x.classList.toggle('is-active', x === t); });
+      if (($('rsQuery').value || '').trim()) doRecipeSearch();
+    });
+
+    // Middagsmeny
+    $('dinnerList').addEventListener('click', function (e) {
+      var o = e.target.closest('[data-open]'); if (o) { openReader(o.getAttribute('data-open')); return; }
+      var rd = e.target.closest('[data-dinner-rand]'); if (rd) { shuffleCourse(rd.getAttribute('data-dinner-rand')); return; }
+      var pk = e.target.closest('[data-dinner-pick]'); if (pk) openDinnerPicker(pk.getAttribute('data-dinner-pick'));
+    });
 
     // Veckomeny
     $('weekList').addEventListener('click', function (e) {
