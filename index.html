@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="dark">
 <title>Lingonbergets kulinariska samling</title>
 <!-- ============================================================= -->
-<!--  LINGONBERGET v1.12.1 — SJÄLVSTÄNDIG VERSION              -->
+<!--  LINGONBERGET v1.12.2 — SJÄLVSTÄNDIG VERSION              -->
 <!--  All CSS och JavaScript är inbakad i denna enda fil.          -->
 <!--  DETTA ÄR DEN NYA FILEN som ska ligga som index.html.         -->
 <!-- ============================================================= -->
@@ -88,8 +88,10 @@ a{color:var(--brand-2);text-decoration:none}
 .menu{
   position:fixed;z-index:41;top:calc(var(--safe-top) + 56px);right:12px;
   width:min(300px,calc(100vw - 24px));
+  max-height:calc(100vh - var(--safe-top) - var(--safe-bottom) - 76px);
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
   background:var(--surface);border:1px solid var(--line-2);border-radius:14px;
-  box-shadow:var(--shadow);overflow:hidden;padding:6px;
+  box-shadow:var(--shadow);padding:6px;
 }
 .menu button,.menu a{
   display:block;width:100%;text-align:left;background:none;border:0;color:var(--ink);
@@ -2901,10 +2903,10 @@ Grädda i 20 minuter."></textarea>
 
 <!-- recipesearch.js -->
 <script>
-/* recipesearch.js — sök recept på webben och importera. En webbapp kan inte söka
-   fritt på nätet, men DuckDuckGos HTML-version är serverrenderad och kan läsas via en
-   CORS-vänlig proxy. Vi söker, plockar ut träffarnas länkar och låter användaren
-   importera valt recept med den vanliga webbimporten. Best-effort — sajter kan blockera. */
+/* recipesearch.js — sök recept på webben och importera. En webbapp kan inte söka fritt
+   på nätet, men DuckDuckGos HTML-sök kan läsas via r.jina.ai (renderar + CORS-vänlig),
+   med en CORS-proxy som reserv. Vi plockar ut träffarnas länkar och låter användaren
+   importera valt recept. Best-effort — sajter/tjänster kan tillfälligt blockera. */
 (function (global) {
   'use strict';
 
@@ -2913,56 +2915,84 @@ Grädda i 20 minuter."></textarea>
     function (u) { return 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(u); },
     function (u) { return 'https://corsproxy.io/?url=' + encodeURIComponent(u); }
   ];
+  var SKIP = /duckduckgo\.|youtube\.|pinterest\.|wikipedia\.|facebook\.|instagram\.|tiktok\.|reddit\.|jina\.ai|google\.|bing\./i;
 
   function fetchHtml(url) {
     var i = 0;
     function tryNext() {
-      if (i >= PROXIES.length) return Promise.reject(new Error('Sökningen kunde inte nås.'));
-      return fetch(PROXIES[i++](url)).then(function (r) {
-        if (!r.ok) throw new Error('status');
-        return r.text();
-      }).then(function (t) {
-        if (!t || t.length < 200) throw new Error('tomt');
-        return t;
-      }).catch(function () { return tryNext(); });
+      if (i >= PROXIES.length) return Promise.reject(new Error('proxy'));
+      return fetch(PROXIES[i++](url)).then(function (r) { if (!r.ok) throw 0; return r.text(); })
+        .then(function (t) { if (!t || t.length < 200) throw 0; return t; })
+        .catch(function () { return tryNext(); });
     }
     return tryNext();
   }
 
-  // DuckDuckGo-träffar länkar via en redirect: ...?uddg=<urlkodad riktig url>.
+  // Plocka ut riktig URL ur DuckDuckGos redirect (?uddg=<urlkodad>).
   function realUrl(href) {
     if (!href) return null;
     var m = href.match(/[?&]uddg=([^&]+)/);
     if (m) { try { return decodeURIComponent(m[1]); } catch (e) { return null; } }
     if (/^https?:\/\//i.test(href)) return href;
+    if (/^\/\//.test(href)) return 'https:' + href;
     return null;
   }
 
-  var SKIP = /youtube\.|pinterest\.|wikipedia\.|facebook\.|instagram\.|tiktok\.|reddit\.|duckduckgo\./i;
+  function domainOf(url) { return ((url.match(/^https?:\/\/([^\/]+)/) || [])[1] || '').replace(/^www\./, ''); }
+
+  function accept(url, title, site, seen) {
+    if (!url || !title) return false;
+    var t = title.replace(/\s+/g, ' ').trim();
+    if (t.length < 3 || t.length > 120) return false;
+    var dom = domainOf(url);
+    if (!dom || SKIP.test(dom)) return false;
+    if (site && dom.indexOf(site.replace(/^www\./, '')) === -1) return false;
+    if (seen[url]) return false;
+    seen[url] = 1;
+    return true;
+  }
+
+  // Tolka markdown (från r.jina.ai): [titel](url).
+  function parseMarkdown(md, site) {
+    var out = [], seen = {}, re = /\[([^\]]+)\]\((\S+?)\)/g, m;
+    while ((m = re.exec(md)) && out.length < 40) {
+      var url = realUrl(m[2].replace(/[)]+$/, ''));
+      if (!url) continue;
+      var title = m[1];
+      if (accept(url, title, site, seen)) out.push({ title: title.replace(/\s+/g, ' ').trim(), url: url, domain: domainOf(url) });
+    }
+    return out.slice(0, 15);
+  }
+
+  // Tolka HTML (från proxy): a-taggar.
+  function parseHtml(html, site) {
+    var doc = new DOMParser().parseFromString(html, 'text/html');
+    var as = doc.querySelectorAll('a[href*="uddg="], a.result__a, a[href^="http"]');
+    var out = [], seen = {};
+    Array.prototype.slice.call(as).forEach(function (a) {
+      if (out.length >= 15) return;
+      var url = realUrl(a.getAttribute('href') || '');
+      var title = a.textContent || '';
+      if (url && accept(url, title, site, seen)) out.push({ title: title.replace(/\s+/g, ' ').trim(), url: url, domain: domainOf(url) });
+    });
+    return out;
+  }
 
   var RecipeSearch = {
-    /** Sök. site (valfritt) begränsar till en domän, t.ex. "ica.se". Returnerar [{ title, url, domain }]. */
+    /** Sök. site (valfritt) begränsar till en domän. Returnerar [{ title, url, domain }]. */
     search: function (query, site) {
       var q = (query || '').trim();
       if (!q) return Promise.resolve([]);
       var terms = q + ' recept' + (site ? ' site:' + site : '');
-      var url = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(terms);
-      return fetchHtml(url).then(function (html) {
-        var doc = new DOMParser().parseFromString(html, 'text/html');
-        var anchors = doc.querySelectorAll('a[href*="uddg="], a.result__a');
-        var out = [], seen = {};
-        Array.prototype.slice.call(anchors).forEach(function (a) {
-          var real = realUrl(a.getAttribute('href') || '');
-          if (!real) return;
-          var dom = ((real.match(/^https?:\/\/([^\/]+)/) || [])[1] || '').replace(/^www\./, '');
-          if (!dom || SKIP.test(dom)) return;
-          var title = (a.textContent || '').replace(/\s+/g, ' ').trim();
-          if (!title || seen[real]) return;
-          seen[real] = 1;
-          out.push({ title: title, url: real, domain: dom });
+      var ddg = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(terms);
+
+      // 1) via r.jina.ai (renderar sidan, CORS-ok)
+      return fetch('https://r.jina.ai/' + ddg).then(function (r) { if (!r.ok) throw 0; return r.text(); })
+        .then(function (md) { var res = parseMarkdown(md, site); if (res.length) return res; throw 0; })
+        .catch(function () {
+          // 2) reserv: proxy + HTML-tolkning
+          return fetchHtml(ddg).then(function (html) { return parseHtml(html, site); });
         });
-        return out.slice(0, 15);
-      });
     }
   };
 
@@ -3085,7 +3115,7 @@ Grädda i 20 minuter."></textarea>
     drink: 'Drink'
   };
 
-  var APP_VERSION = '1.12.1';   // visas under "Om appen"
+  var APP_VERSION = '1.12.2';   // visas under "Om appen"
 
   var $ = function (id) { return document.getElementById(id); };
   var qa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
