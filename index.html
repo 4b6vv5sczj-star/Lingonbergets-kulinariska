@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="dark">
 <title>Lingonbergets kulinariska samling</title>
 <!-- ============================================================= -->
-<!--  LINGONBERGET v1.13.0 — SJÄLVSTÄNDIG VERSION              -->
+<!--  LINGONBERGET v1.13.2 — SJÄLVSTÄNDIG VERSION              -->
 <!--  All CSS och JavaScript är inbakad i denna enda fil.          -->
 <!--  DETTA ÄR DEN NYA FILEN som ska ligga som index.html.         -->
 <!-- ============================================================= -->
@@ -456,7 +456,7 @@ a{color:var(--brand-2);text-decoration:none}
   .ing-sub{color:#000}
   .menu-card{background:#fffdf7 !important;border:1px solid #d8cfc0;color:#1a1a1a;max-width:520px;margin:0 auto;box-shadow:none}
   .mc-title,.mc-name{color:#1a1a1a}
-  .mc-label,.mc-rule{color:#9a2740}
+  .mc-label,.mc-rule,.mc-wine{color:#9a2740}
   .mc-date,.mc-foot{color:#555}
 }
 
@@ -497,7 +497,19 @@ a{color:var(--brand-2);text-decoration:none}
 .mc-course{margin:16px 0}
 .mc-label{font-size:11px;text-transform:uppercase;letter-spacing:.18em;color:var(--lingon);font-family:var(--sans)}
 .mc-name{font-size:19px;color:var(--ink);margin-top:4px;line-height:1.3}
+.mc-wine{font-size:13.5px;color:var(--lingon);margin-top:3px;font-family:var(--sans)}
 .mc-foot{margin-top:26px;font-size:11px;color:var(--faint);font-family:var(--sans);letter-spacing:.04em}
+
+/* Vin till menyn (sheet) */
+.dw-course{margin-bottom:14px}
+.dw-label{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--brand-2);font-weight:700;margin-bottom:6px}
+.dw-swap{margin-top:7px;padding:8px 13px;border-radius:999px;font-size:13px;background:transparent;border:1px solid var(--line-2);color:var(--muted)}
+.dw-swap:active{background:var(--surface-2)}
+.dw-pickwine{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;
+  padding:11px 12px;border-radius:11px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink)}
+.dw-pickwine:active{background:var(--surface-3)}
+.dw-pw-main{display:flex;flex-direction:column;gap:2px;min-width:0}
+.dw-pw-main strong{font-size:14px}
 
 /* ===== Middagsmeny ===== */
 .dinner-list{display:flex;flex-direction:column;gap:10px;margin-bottom:6px}
@@ -834,7 +846,7 @@ Grädda i 20 minuter."></textarea>
       <p class="lead">En trerätters ur din samling. Slumpa om, byt rätt, och bygg inköpslistan för hela menyn.</p>
       <div id="dinnerList" class="dinner-list"></div>
       <div class="action-bar">
-        <button class="btn" data-action="dinner-wine">🍷 Vin</button>
+        <button class="btn" data-action="dinner-wine">🍷 Viner</button>
         <button class="btn" data-action="dinner-shop">🛒 Lista</button>
         <button class="btn" data-action="menucard">🧾 Menykort</button>
         <button class="btn btn-primary" data-action="dinner-shuffle">🎲 Slumpa</button>
@@ -3158,7 +3170,7 @@ Grädda i 20 minuter."></textarea>
     drink: 'Drink'
   };
 
-  var APP_VERSION = '1.13.0';   // visas under "Om appen"
+  var APP_VERSION = '1.13.2';   // visas under "Om appen"
 
   var $ = function (id) { return document.getElementById(id); };
   var qa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
@@ -3408,6 +3420,14 @@ Grädda i 20 minuter."></textarea>
       if (e.target === ov || e.target.closest('[data-sheet-close]')) { closeSheet(); return; }
       var add = e.target.closest('[data-wine]');
       if (add) { addWineToShopping(add.getAttribute('data-wine')); toast('Vinet tillagt i inköpslistan.'); return; }
+      var sw = e.target.closest('[data-dw-swap]');
+      if (sw) { openWineSwap(sw.getAttribute('data-dw-swap')); return; }
+      var dp = e.target.closest('[data-dw-pick]');
+      if (dp) {
+        var crs = dp.getAttribute('data-dw-pick'); var w = dinnerSwapCandidates[parseInt(dp.getAttribute('data-dw-idx'), 10)];
+        if (w) { dinnerWineState[crs] = wineEntry(w); showDinnerWines(); }
+        return;
+      }
       var pk = e.target.closest('[data-pick]');
       if (pk) {
         var course = pk.getAttribute('data-course');
@@ -4227,7 +4247,10 @@ Grädda i 20 minuter."></textarea>
 
   var DINNER = [['forratt', 'Förrätt'], ['huvudratt', 'Huvudrätt'], ['efterratt', 'Efterrätt']];
   var dinnerState = {};
+  var dinnerWineState = {};
   var dinnerRecipes = [];
+  var dinnerWinesAll = [];
+  var dinnerSwapCandidates = [];
 
   function dByCat(cat) { return dinnerRecipes.filter(function (r) { return r.category === cat; }); }
   function dRand(cat) { var a = dByCat(cat); return a.length ? a[Math.floor(Math.random() * a.length)].id : null; }
@@ -4273,11 +4296,67 @@ Grädda i 20 minuter."></textarea>
     if (!total) { toast('Slumpa eller välj rätter till menyn först.'); return; }
     toast('Inköpslista byggd från middagsmenyn.'); openShop();
   }
-  function dinnerWine() {
+  // Räkna fram bästa vin per rätt (förrätt/huvudrätt/efterrätt) och spara namnet.
+  function computeDinnerWines(wines) {
     var byId = {}; dinnerRecipes.forEach(function (r) { byId[r.id] = r; });
-    var main = byId[dinnerState.huvudratt];
-    if (!main) { toast('Välj en huvudrätt först.'); return; }
-    state.editing = main; suggestWine();
+    dinnerWineState = {};
+    DINNER.forEach(function (c) {
+      var r = byId[dinnerState[c[0]]]; if (!r) return;
+      var pairing = WinePair.pairingFor({ title: r.title, category: r.category, text: stripHtml(r.bodyHtml) });
+      var top = WinePair.rankWines(pairing, wines, { max: 1 })[0];
+      if (top) dinnerWineState[c[0]] = wineEntry(top);
+    });
+  }
+  function wineEntry(w) {
+    return { wine: w, name: w.name, label: w.name + (w.price ? ' (' + w.price.toFixed(2).replace('.', ',') + ' €)' : '') };
+  }
+
+  function dinnerWines() {
+    if (!global.WineStore || !global.WinePair) { toast('Vinväljaren är inte tillgänglig.'); return; }
+    var any = DINNER.some(function (c) { return dinnerState[c[0]]; });
+    if (!any) { toast('Slumpa eller välj rätter först.'); return; }
+    setBusy('Läser vinsortiment…');
+    WineStore.cached().then(function (d) {
+      clearBusy();
+      if (!d.wines.length) {
+        if (global.confirm('Alkos vinsortiment är inte hämtat ännu. Hämta nu?')) refreshWines(function (dd) { dinnerWinesAll = dd.wines; computeDinnerWines(dd.wines); showDinnerWines(); });
+        return;
+      }
+      dinnerWinesAll = d.wines;
+      computeDinnerWines(d.wines); showDinnerWines();
+    }).catch(function () { clearBusy(); toast('Kunde inte läsa vinsortimentet.'); });
+  }
+
+  function showDinnerWines() {
+    var byId = {}; dinnerRecipes.forEach(function (r) { byId[r.id] = r; });
+    var body = '<div class="wine-head"><h2>Vin till menyn</h2></div>';
+    DINNER.forEach(function (c) {
+      var r = byId[dinnerState[c[0]]]; if (!r) return;
+      var w = dinnerWineState[c[0]];
+      body += '<div class="dw-course"><div class="dw-label">' + c[1] + ' · ' + escapeHtml(r.title) + '</div>' +
+        (w ? wineItemHtml(w.wine) : '<p class="wine-empty">Inget passande vin hittades.</p>') +
+        '<button class="dw-swap" data-dw-swap="' + c[0] + '">🔄 Byt vin</button></div>';
+    });
+    body += '<div class="wine-foot"><button class="btn btn-primary" data-sheet-close="1">Stäng</button></div>';
+    openSheet(body);
+  }
+
+  function openWineSwap(course) {
+    var byId = {}; dinnerRecipes.forEach(function (r) { byId[r.id] = r; });
+    var r = byId[dinnerState[course]]; if (!r) return;
+    var label = (DINNER.filter(function (c) { return c[0] === course; })[0] || ['', ''])[1];
+    var pairing = WinePair.pairingFor({ title: r.title, category: r.category, text: stripHtml(r.bodyHtml) });
+    dinnerSwapCandidates = WinePair.rankWines(pairing, dinnerWinesAll, { max: 14 });
+    if (!dinnerSwapCandidates.length) { toast('Inga alternativ hittades.'); return; }
+    var body = '<div class="wine-head"><h2>Byt vin — ' + escapeHtml(label) + '</h2><p>Välj ett annat vin till ' + escapeHtml(r.title) + '.</p></div><div class="wine-list">' +
+      dinnerSwapCandidates.map(function (w, i) {
+        var meta = [w.country, w.vintage].filter(Boolean).join(' · ');
+        var price = w.price ? (w.price.toFixed(2).replace('.', ',') + ' €') : '';
+        return '<button class="dw-pickwine" data-dw-pick="' + course + '" data-dw-idx="' + i + '">' +
+          '<span class="dw-pw-main"><strong>' + escapeHtml(w.name) + '</strong><span class="wine-meta">' + escapeHtml(meta) + '</span></span>' +
+          '<span class="wine-price">' + escapeHtml(price) + '</span></button>';
+      }).join('') + '</div><div class="wine-foot"><button class="btn btn-primary" data-sheet-close="1">Avbryt</button></div>';
+    openSheet(body);
   }
 
   /* ---------- Menykort ---------- */
@@ -4285,20 +4364,31 @@ Grädda i 20 minuter."></textarea>
   function openMenuCard() {
     showView('menucard');
     if (!$('menuCardTitle').value) $('menuCardTitle').value = 'Middagsmeny';
-    if (dinnerRecipes.length) renderMenuCard();
-    else Store.all().then(function (l) { dinnerRecipes = l; renderMenuCard(); });
+    function finish() {
+      var hasWine = DINNER.some(function (c) { return dinnerWineState[c[0]]; });
+      if (!hasWine && global.WineStore && global.WinePair) {
+        WineStore.cached().then(function (d) { if (d.wines.length) computeDinnerWines(d.wines); renderMenuCard(); }).catch(function () { renderMenuCard(); });
+      } else renderMenuCard();
+    }
+    if (dinnerRecipes.length) finish();
+    else Store.all().then(function (l) { dinnerRecipes = l; finish(); });
   }
   function renderMenuCard() {
     var byId = {}; dinnerRecipes.forEach(function (r) { byId[r.id] = r; });
     var title = ($('menuCardTitle').value || 'Meny').trim();
     var date = new Date().toLocaleDateString('sv-SE', { year: 'numeric', month: 'long', day: 'numeric' });
-    var courses = DINNER.map(function (c) { var r = byId[dinnerState[c[0]]]; return r ? { label: c[1], name: r.title } : null; }).filter(Boolean);
+    var courses = DINNER.map(function (c) {
+      var r = byId[dinnerState[c[0]]];
+      return r ? { label: c[1], name: r.title, wine: dinnerWineState[c[0]] && dinnerWineState[c[0]].name } : null;
+    }).filter(Boolean);
     $('menuCard').innerHTML =
       '<div class="mc-title">' + escapeHtml(title) + '</div>' +
       '<div class="mc-date">' + escapeHtml(date) + '</div>' +
       '<div class="mc-rule">✦ ✦ ✦</div>' +
       (courses.length ? courses.map(function (c) {
-        return '<div class="mc-course"><div class="mc-label">' + escapeHtml(c.label) + '</div><div class="mc-name">' + escapeHtml(c.name) + '</div></div>';
+        return '<div class="mc-course"><div class="mc-label">' + escapeHtml(c.label) + '</div>' +
+          '<div class="mc-name">' + escapeHtml(c.name) + '</div>' +
+          (c.wine ? '<div class="mc-wine">🍷 ' + escapeHtml(c.wine) + '</div>' : '') + '</div>';
       }).join('') : '<p class="week-empty">Slumpa en meny först.</p>') +
       '<div class="mc-foot">Lingonbergets kulinariska samling</div>';
   }
@@ -4438,7 +4528,7 @@ Grädda i 20 minuter."></textarea>
       case 'dinner': closeMenu(); openDinner(); break;
       case 'dinner-shuffle': shuffleDinner(); break;
       case 'dinner-shop': dinnerToShopping(); break;
-      case 'dinner-wine': dinnerWine(); break;
+      case 'dinner-wine': dinnerWines(); break;
       case 'menucard': openMenuCard(); break;
       case 'print-menucard': window.print(); break;
       case 'share-menu': shareMenu(); break;
