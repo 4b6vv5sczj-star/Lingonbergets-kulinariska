@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="dark">
 <title>Lingonbergets kulinariska samling</title>
 <!-- ============================================================= -->
-<!--  LINGONBERGET v1.14.0 — SJÄLVSTÄNDIG VERSION              -->
+<!--  LINGONBERGET v1.17.0 — SJÄLVSTÄNDIG VERSION              -->
 <!--  All CSS och JavaScript är inbakad i denna enda fil.          -->
 <!--  DETTA ÄR DEN NYA FILEN som ska ligga som index.html.         -->
 <!-- ============================================================= -->
@@ -123,10 +123,30 @@ a{color:var(--brand-2);text-decoration:none}
 }
 .chip.is-active{background:var(--lingon);border-color:var(--lingon);color:#fff;font-weight:600}
 
-/* Grid */
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-@media(min-width:680px){.grid{grid-template-columns:repeat(3,1fr)}}
-@media(min-width:980px){.grid{grid-template-columns:repeat(4,1fr)}}
+/* Öppningssida — stora navigeringsblock i samma språk som Financial Copilot. */
+.home-head{padding:8px 0 2px}
+.home-kicker{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.home-title{font:600 34px/1.08 var(--serif);margin:4px 0 8px}
+.home-lead{color:var(--muted);font-size:15px;max-width:620px}
+.home-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:20px}
+.home-card{appearance:none;width:100%;display:grid;grid-template-columns:54px minmax(0,1fr) auto;align-items:center;
+  gap:14px;text-align:left;background:var(--surface);border:1px solid var(--line-2);border-radius:18px;
+  color:var(--ink);padding:18px;min-height:96px;box-shadow:0 10px 28px rgba(0,0,0,.16)}
+.home-card:active{transform:scale(.99);background:var(--surface-2)}
+.home-card.is-favorite{border-color:#6a5722;background:linear-gradient(135deg,#211f19,var(--surface))}
+.home-icon{font-size:32px;line-height:1;text-align:center}
+.home-copy{min-width:0}
+.home-name{display:block;font-size:19px;font-weight:800;margin-bottom:3px}
+.home-desc{display:block;color:var(--muted);font-size:13px;line-height:1.35}
+.home-side{display:flex;align-items:center;gap:10px}
+.home-count{min-width:31px;padding:5px 9px;border-radius:999px;text-align:center;font-size:12px;font-weight:700;
+  color:var(--brand-2);background:var(--surface-2);border:1px solid var(--line-2)}
+.home-arrow{font-size:24px;color:var(--faint)}
+.home-note{display:flex;gap:10px;align-items:flex-start;margin-top:18px;padding:14px;border:1px solid var(--line);
+  border-radius:14px;background:#111920;color:var(--muted);font-size:13px}
+.collection-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media(min-width:680px){.home-grid{grid-template-columns:1fr 1fr}.home-title{font-size:42px}.collection-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(min-width:980px){.collection-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .card{
   background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
   overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .12s,border-color .12s;
@@ -141,6 +161,8 @@ a{color:var(--brand-2);text-decoration:none}
 .card-body{padding:11px 12px 13px}
 .card-body h3{margin:0;font-size:14.5px;line-height:1.3;font-family:var(--serif);font-weight:600}
 .card-body p{margin:5px 0 0;font-size:12px;color:var(--faint);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card{min-width:0}
+.card-body h3{overflow-wrap:anywhere}
 
 /* Empty state */
 .empty{text-align:center;padding:50px 24px;color:var(--muted)}
@@ -209,38 +231,13 @@ a{color:var(--brand-2);text-decoration:none}
 }
 .gallery-add:active{background:var(--surface-3)}
 
-.import-row{display:flex;flex-wrap:wrap;gap:9px}
+.import-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 .pill{
-  padding:9px 13px;border-radius:11px;font-size:13.5px;
+  min-height:46px;padding:9px 11px;border-radius:11px;font-size:13.5px;text-align:left;
   background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);
 }
 .pill:active{background:var(--surface-3)}
-
-/* ===== Rich text editor (Baltic-stil) ===== */
-.editor-shell{border:1px solid var(--line-2);border-radius:14px;overflow:hidden;background:var(--surface)}
-.editor-toolbar{
-  display:flex;flex-wrap:wrap;gap:7px;padding:9px;background:var(--surface-2);
-  border-bottom:1px solid var(--line);
-}
-.editor-toolbar button{
-  flex:1 1 auto;min-width:64px;min-height:50px;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:3px;padding:6px 8px;border-radius:11px;
-  background:var(--surface-3);border:1px solid var(--line-2);color:var(--ink);
-}
-.editor-toolbar button:active{background:var(--brand);border-color:var(--brand)}
-.tb-ic{font-size:18px;line-height:1}
-.tb-lbl{font-size:10.5px;color:var(--muted);letter-spacing:.02em}
-.editor-toolbar button:active .tb-lbl{color:#fff}
-.tb-sep{display:none}
-.editor{
-  min-height:240px;padding:16px;font-size:16px;line-height:1.65;color:var(--ink);outline:none;
-  font-family:var(--serif);
-}
-.editor:empty:before{content:attr(data-placeholder);color:var(--faint);font-family:var(--sans)}
-.editor h2{font-size:19px;margin:16px 0 6px;font-family:var(--serif);color:var(--brand-2)}
-.editor ul,.editor ol{padding-left:22px;margin:8px 0}
-.editor li{margin:3px 0}
-.editor img,.sp-img{max-width:100%;height:auto;border-radius:10px;margin:8px 0;display:block}
+@media(min-width:720px){.import-row{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
 /* Delrubrik i strukturerade ingredienslistor (t.ex. "Sås:", "Deg:") */
 .ing-sub{margin:12px 0 4px;color:var(--brand-2);font-weight:600;font-family:var(--sans);font-size:14px}
@@ -592,8 +589,52 @@ a{color:var(--brand-2);text-decoration:none}
     <a class="menu-about" data-action="about">Om appen · v<span class="app-version"></span></a>
   </nav>
 
+  <!-- ===== View: Home ===== -->
+  <main class="view" id="view-home">
+    <div class="home-head">
+      <div class="home-kicker">Lingonbergets kulinariska samling</div>
+      <h1 class="home-title">Vad vill du laga?</h1>
+      <div class="home-lead">Välj en del av samlingen. Recepten visas först när du öppnar ett block.</div>
+    </div>
+    <div class="home-grid" id="homeGrid">
+      <button class="home-card is-favorite" type="button" data-home-cat="fav">
+        <span class="home-icon">★</span><span class="home-copy"><span class="home-name">Favoriter</span><span class="home-desc">Recepten du helst återkommer till</span></span>
+        <span class="home-side"><span class="home-count" data-count="fav">0</span><span class="home-arrow">›</span></span>
+      </button>
+      <button class="home-card" type="button" data-home-cat="all">
+        <span class="home-icon">🫐</span><span class="home-copy"><span class="home-name">Alla recept</span><span class="home-desc">Hela den kulinariska samlingen</span></span>
+        <span class="home-side"><span class="home-count" data-count="all">0</span><span class="home-arrow">›</span></span>
+      </button>
+      <button class="home-card" type="button" data-home-cat="forratt">
+        <span class="home-icon">🥗</span><span class="home-copy"><span class="home-name">Förrätt</span><span class="home-desc">En fin början på måltiden</span></span>
+        <span class="home-side"><span class="home-count" data-count="forratt">0</span><span class="home-arrow">›</span></span>
+      </button>
+      <button class="home-card" type="button" data-home-cat="huvudratt">
+        <span class="home-icon">🍽️</span><span class="home-copy"><span class="home-name">Huvudrätt</span><span class="home-desc">Måltidens huvudnummer</span></span>
+        <span class="home-side"><span class="home-count" data-count="huvudratt">0</span><span class="home-arrow">›</span></span>
+      </button>
+      <button class="home-card" type="button" data-home-cat="efterratt">
+        <span class="home-icon">🍓</span><span class="home-copy"><span class="home-name">Efterrätt</span><span class="home-desc">Något sött efter maten</span></span>
+        <span class="home-side"><span class="home-count" data-count="efterratt">0</span><span class="home-arrow">›</span></span>
+      </button>
+      <button class="home-card" type="button" data-home-cat="bakverk">
+        <span class="home-icon">🥐</span><span class="home-copy"><span class="home-name">Bakverk</span><span class="home-desc">Bröd, kakor och annat bakat</span></span>
+        <span class="home-side"><span class="home-count" data-count="bakverk">0</span><span class="home-arrow">›</span></span>
+      </button>
+      <button class="home-card" type="button" data-home-cat="vegetariskt">
+        <span class="home-icon">🌿</span><span class="home-copy"><span class="home-name">Vegetariskt</span><span class="home-desc">Gröna favoriter och vardagsmat</span></span>
+        <span class="home-side"><span class="home-count" data-count="vegetariskt">0</span><span class="home-arrow">›</span></span>
+      </button>
+      <button class="home-card" type="button" data-home-cat="drink">
+        <span class="home-icon">🍸</span><span class="home-copy"><span class="home-name">Drinkar</span><span class="home-desc">Cocktails och andra glasfavoriter</span></span>
+        <span class="home-side"><span class="home-count" data-count="drink">0</span><span class="home-arrow">›</span></span>
+      </button>
+    </div>
+    <div class="home-note"><span>🔒</span><span>Samlingen sparas lokalt på din enhet. Inga recept eller bilder visas förrän du själv öppnar dem.</span></div>
+  </main>
+
   <!-- ===== View: Collection ===== -->
-  <main class="view" id="view-collection">
+  <main class="view" id="view-collection" hidden>
     <div class="season-banner" id="seasonBanner" data-action="season" hidden></div>
     <div class="search-row">
       <svg class="search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
@@ -611,7 +652,7 @@ a{color:var(--brand-2);text-decoration:none}
       <button class="chip" data-cat="drink">Drink</button>
     </div>
 
-    <div class="grid" id="recipeGrid"></div>
+    <div class="collection-grid" id="recipeGrid" aria-live="polite"></div>
 
     <div class="empty" id="emptyState" hidden>
       <div class="empty-emblem">🫐</div>
@@ -1722,6 +1763,7 @@ Grädda i 20 minuter."></textarea>
   var API = '';
 
   var PROXIES = [
+    function (u) { return u; },
     function (u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
     function (u) { return 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(u); },
     function (u) { return 'https://corsproxy.io/?url=' + encodeURIComponent(u); }
@@ -2694,18 +2736,27 @@ Grädda i 20 minuter."></textarea>
     function (u) { return 'https://thingproxy.freeboard.io/fetch/' + u; }
   ];
 
-  function fetchRawHtml(url) {
-    var i = 0;
-    function tryNext() {
-      if (i >= PROXIES.length) return Promise.reject(new Error('alla hämtningstjänster misslyckades'));
-      var pu = PROXIES[i++](url);
-      return fetch(pu).then(function (r) {
+  function fetchText(url, ms) {
+    var ctrl = ('AbortController' in global) ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, ms || 14000) : null;
+    return fetch(url, ctrl ? { signal: ctrl.signal, credentials: 'omit' } : { credentials: 'omit' })
+      .then(function (r) {
         if (!r.ok) throw new Error('status ' + r.status);
         return r.text();
       }).then(function (txt) {
+        if (timer) clearTimeout(timer);
         if (!txt || txt.length < 200) throw new Error('för kort svar');
         return txt;
-      }).catch(function () { return tryNext(); });
+      }).catch(function (err) { if (timer) clearTimeout(timer); throw err; });
+  }
+
+  function fetchRawHtml(url) {
+    var i = -1; // prova originaladressen först; många receptsajter tillåter CORS
+    function tryNext() {
+      i++;
+      if (i > PROXIES.length) return Promise.reject(new Error('alla hämtningstjänster misslyckades'));
+      var requestUrl = i === 0 ? url : PROXIES[i - 1](url);
+      return fetchText(requestUrl, 14000).catch(function () { return tryNext(); });
     }
     return tryNext();
   }
@@ -2825,8 +2876,10 @@ Grädda i 20 minuter."></textarea>
     var parts = [];
     var ingredients = asArray(r.recipeIngredient).length ? asArray(r.recipeIngredient) : asArray(r.ingredients);
     var steps = flattenInstructions(r.recipeInstructions);
-    var yield_ = clean(r.recipeYield || (Array.isArray(r.recipeYield) ? r.recipeYield[0] : ''));
+    var rawYield = Array.isArray(r.recipeYield) ? r.recipeYield[0] : r.recipeYield;
+    var yield_ = clean(rawYield || '');
 
+    if (r.description) parts.push('<p>' + esc(clean(r.description)) + '</p>');
     if (yield_) parts.push('<p>' + esc(yield_) + '</p>');
     if (ingredients.length) {
       parts.push('<h2>Ingredienser</h2><ul>');
@@ -2840,6 +2893,12 @@ Grädda i 20 minuter."></textarea>
     }
     if (!ingredients.length && !steps.length && r.description) parts.push(structureToHtmlOnly(r.description));
     return parts.join('');
+  }
+
+  function servingsFrom(value) {
+    value = Array.isArray(value) ? value[0] : value;
+    var m = String(value || '').match(/\d+/);
+    return m ? Math.max(1, parseInt(m[0], 10)) : null;
   }
 
   /* ---------- Receptplugin-märkning (WPRM / Tasty / Mediavine) ---------- */
@@ -3005,7 +3064,7 @@ Grädda i 20 minuter."></textarea>
 
   function parseDoc(doc) {
     var recipe = parseJsonLd(doc);
-    if (recipe) { var h = structuredToHtml(recipe); if (h) return { title: clean(recipe.name || ''), html: h, image: pickImage(recipe.image) }; }
+    if (recipe) { var h = structuredToHtml(recipe); if (h) return { title: clean(recipe.name || ''), html: h, image: pickImage(recipe.image), servings: servingsFrom(recipe.recipeYield) }; }
     var plug = parsePluginMarkup(doc);
     if (plug && plug.html) return { title: plug.name, html: plug.html, image: plug.image };
     var micro = parseMicrodata(doc);
@@ -3033,6 +3092,11 @@ Grädda i 20 minuter."></textarea>
     fromUrl: function (url, _depth, _flags) {
       url = (url || '').trim();
       if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+      try {
+        var parsedUrl = new URL(url);
+        if (!/^https?:$/.test(parsedUrl.protocol)) return Promise.reject(new Error('ogiltig länk'));
+        url = parsedUrl.href;
+      } catch (e) { return Promise.reject(new Error('ogiltig länk')); }
       _depth = _depth || 0;
       _flags = _flags || {};
       var pin = isPinterest(url);
@@ -3060,23 +3124,23 @@ Grädda i 20 minuter."></textarea>
         return pre.then(function (printRes) {
           // 1) Strukturerad data (JSON-LD / plugin / microdata)
           var result = printRes || parseDoc(doc);
-          if (result) { if (!result.image) result.image = imageFromDoc(doc); return result; }
+          if (result) { if (!result.image) result.image = imageFromDoc(doc); result.sourceUrl = url; return result; }
 
           // 2) Brödtext-recept (bloggar utan märkning)
           var prose = parseProse(doc);
-          if (prose) return prose;
+          if (prose) { prose.sourceUrl = url; return prose; }
 
           // 3) Läsbar text via r.jina.ai, annars OpenGraph
           return fetchReadable(url).then(function (txt) {
             var p = structureFull(cleanMarkdown(txt));
-            if (/<ul|<ol/i.test(p.html)) return { title: p.title, html: p.html, image: imageFromDoc(doc) };
+            if (/<ul|<ol/i.test(p.html)) return { title: p.title, html: p.html, image: imageFromDoc(doc), sourceUrl: url };
             var og = parseOG(doc);
-            if (og && og.description) return { title: og.name || p.title, html: structureToHtmlOnly(og.description), image: og.image || imageFromDoc(doc) };
-            return { title: p.title, html: p.html, image: imageFromDoc(doc) };
+            if (og && og.description) return { title: og.name || p.title, html: structureToHtmlOnly(og.description), image: og.image || imageFromDoc(doc), sourceUrl: url };
+            return { title: p.title, html: p.html, image: imageFromDoc(doc), sourceUrl: url };
           }).catch(function () {
             var og2 = parseOG(doc);
             if (og2 && (og2.description || og2.image)) {
-              return { title: og2.name, html: og2.description ? structureToHtmlOnly(og2.description) : '', image: og2.image || imageFromDoc(doc) };
+              return { title: og2.name, html: og2.description ? structureToHtmlOnly(og2.description) : '', image: og2.image || imageFromDoc(doc), sourceUrl: url };
             }
             throw new Error('no-structured-data');
           });
@@ -3085,7 +3149,7 @@ Grädda i 20 minuter."></textarea>
         // Sista utväg: läsbar text via r.jina.ai
         return fetchReadable(url).then(function (txt) {
           var parsed = structureFull(cleanMarkdown(txt));
-          return { title: parsed.title, html: parsed.html, image: null };
+          return { title: parsed.title, html: parsed.html, image: null, sourceUrl: url };
         });
       });
     },
@@ -3097,10 +3161,12 @@ Grädda i 20 minuter."></textarea>
     fetchImageBlob: function (url) {
       if (!url) return Promise.resolve(null);
       if (/^https?:/i.test(url) === false) return Promise.resolve(null);
-      var i = 0;
+      var i = -1;
       function tryNext() {
-        if (i >= PROXIES.length) return Promise.resolve(null);
-        return fetch(PROXIES[i++](url)).then(function (r) {
+        i++;
+        if (i > PROXIES.length) return Promise.resolve(null);
+        var requestUrl = i === 0 ? url : PROXIES[i - 1](url);
+        return fetch(requestUrl, { credentials: 'omit' }).then(function (r) {
           if (!r.ok) throw new Error('status');
           return r.blob();
         }).then(function (b) {
@@ -3350,13 +3416,13 @@ Grädda i 20 minuter."></textarea>
     drink: 'Drink'
   };
 
-  var APP_VERSION = '1.15.0';   // visas under "Om appen"
+  var APP_VERSION = '1.17.0';   // visas under "Om appen"
 
   var $ = function (id) { return document.getElementById(id); };
   var qa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
 
   var state = {
-    view: 'collection',
+    view: 'home',
     filter: 'all',
     query: '',
     editing: null,      // recept som redigeras
@@ -3429,6 +3495,7 @@ Grädda i 20 minuter."></textarea>
 
   function showView(name) {
     state.view = name;
+    $('view-home').hidden = name !== 'home';
     $('view-collection').hidden = name !== 'collection';
     $('view-read').hidden = name !== 'read';
     $('view-edit').hidden = name !== 'edit';
@@ -3444,8 +3511,8 @@ Grädda i 20 minuter."></textarea>
     $('view-recipesearch').hidden = name !== 'recipesearch';
     $('view-dinner').hidden = name !== 'dinner';
     $('view-menucard').hidden = name !== 'menucard';
-    $('backBtn').hidden = name === 'collection';
-    $('fab').hidden = name !== 'collection';
+    $('backBtn').hidden = name === 'home';
+    $('fab').hidden = name !== 'home' && name !== 'collection';
     if (name !== 'cook') releaseWake();
     window.scrollTo(0, 0);
   }
@@ -3983,7 +4050,32 @@ Grädda i 20 minuter."></textarea>
 
   /* ---------- Samling (lista) ---------- */
 
+  function renderHome() {
+    Store.all().then(function (list) {
+      qa('[data-count]').forEach(function (el) {
+        var cat = el.getAttribute('data-count');
+        var n = cat === 'all' ? list.length : (cat === 'fav'
+          ? list.filter(function (r) { return !!r.favorite; }).length
+          : list.filter(function (r) { return r.category === cat; }).length);
+        el.textContent = n;
+      });
+    });
+  }
+
+  function openCollection(cat) {
+    state.filter = cat || 'all';
+    state.query = '';
+    $('searchInput').value = '';
+    qa('#filters .chip').forEach(function (x) {
+      x.classList.toggle('is-active', x.getAttribute('data-cat') === state.filter);
+    });
+    Store.setSetting('filter', state.filter);
+    renderCollection();
+    showView('collection');
+  }
+
   function renderCollection() {
+    renderHome();
     Store.all().then(function (list) {
       var q = state.query.toLowerCase();
       var filtered = list.filter(function (r) {
@@ -4001,7 +4093,7 @@ Grädda i 20 minuter."></textarea>
       if (list.length === 0) { return; }
 
       if (filtered.length === 0) {
-        grid.innerHTML = '<p style="grid-column:1/-1;color:var(--faint);text-align:center;padding:30px">Inga recept matchar.</p>';
+        grid.innerHTML = '<p class="wine-empty" style="grid-column:1/-1">Inga recept matchar din sökning.</p>';
         return;
       }
 
@@ -4390,6 +4482,11 @@ Grädda i 20 minuter."></textarea>
       if (!$('recipeTitle').value.trim() && res.title) $('recipeTitle').value = res.title;
       if (res.html) { importIntoFields(res.html); toast('Recept importerat — granska i fälten.'); }
       else toast('Hittade inget recept på sidan. Prova "Klistra in recept" istället.');
+      if (res.servings && $('recipeServings') && !$('recipeServings').value) $('recipeServings').value = res.servings;
+      if (res.sourceUrl && state.editing) {
+        try { state.editing.source = new URL(res.sourceUrl).hostname.replace(/^www\./, ''); }
+        catch (e) { state.editing.source = res.sourceUrl; }
+      }
       // Bädda in receptbilden i receptet (sparas lokalt → funkar offline).
       if (res.image) {
         WebImport.fetchImageBlob(res.image).then(function (blob) {
@@ -4635,6 +4732,13 @@ Grädda i 20 minuter."></textarea>
     var pTitle = title ? Translate.text(title, 'sv') : Promise.resolve(title);
     Promise.all([Translate.html(html, 'sv'), pTitle]).then(function (res) {
       clearBusy();
+      var beforeText = stripHtml(html).replace(/\s+/g, ' ').trim();
+      var afterText = stripHtml(res[0] || '').replace(/\s+/g, ' ').trim();
+      var titleChanged = res[1] && res[1].trim() !== title;
+      if (afterText === beforeText && !titleChanged) {
+        toast('Ingen text ändrades. Kontrollera internetanslutningen eller försök igen.');
+        return;
+      }
       if (res[0]) { var f = htmlToFields(res[0]); $('edIntro').value = f.intro; $('edIng').value = f.ing; $('edSteps').value = f.steps; }
       if (res[1]) $('recipeTitle').value = res[1];
       lastTranslateSnapshot = snapshot;
@@ -4774,10 +4878,18 @@ Grädda i 20 minuter."></textarea>
     // Topbar
     $('backBtn').addEventListener('click', function () {
       if (state.view === 'edit' && state.editing && state.editing.id) openReader(state.editing.id);
-      else { renderCollection(); showView('collection'); }
+      else if (state.view === 'collection') { renderHome(); showView('home'); }
+      else if (state.view === 'read' || state.view === 'cook') { renderCollection(); showView('collection'); }
+      else { renderHome(); showView('home'); }
     });
     $('menuBtn').addEventListener('click', openMenu);
     $('menuBackdrop').addEventListener('click', closeMenu);
+
+    // Öppningssidans stora kategoriblock
+    $('homeGrid').addEventListener('click', function (e) {
+      var card = e.target.closest('[data-home-cat]');
+      if (card) openCollection(card.getAttribute('data-home-cat'));
+    });
 
     // Filter
     $('filters').addEventListener('click', function (e) {
@@ -4922,8 +5034,9 @@ Grädda i 20 minuter."></textarea>
     }
     setSeasonTheme();
     renderSeasonBanner();
+    renderHome();
     renderCollection();
-    showView('collection');
+    showView('home');
     backupCheck();
   }
 
