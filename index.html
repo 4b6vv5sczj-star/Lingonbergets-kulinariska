@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="dark">
 <title>Lingonbergets kulinariska samling</title>
 <!-- ============================================================= -->
-<!--  LINGONBERGET v1.18.0 — SJÄLVSTÄNDIG VERSION              -->
+<!--  LINGONBERGET v1.19.0 — SJÄLVSTÄNDIG VERSION              -->
 <!--  All CSS och JavaScript är inbakad i denna enda fil.          -->
 <!--  DETTA ÄR DEN NYA FILEN som ska ligga som index.html.         -->
 <!-- ============================================================= -->
@@ -303,11 +303,20 @@ a{color:var(--brand-2);text-decoration:none}
   background:var(--surface-3);border:1px solid var(--line-2);color:var(--ink)}
 .scaler-btn:active{transform:translateY(1px)}
 .scaler-val{min-width:32px;text-align:center;font-size:18px;font-weight:700}
+.scaler-input{width:58px;height:38px;text-align:center;border-radius:10px;font-size:17px;font-weight:700;
+  background:var(--surface-3);border:1px solid var(--line-2);color:var(--ink);-moz-appearance:textfield}
+.scaler-input::-webkit-outer-spin-button,.scaler-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.scaler-input:focus{outline:none;border-color:var(--brand)}
 .scaler-reset{margin-left:auto;padding:8px 12px;border-radius:999px;font-size:13px;
   background:transparent;border:1px solid var(--line-2);color:var(--muted)}
 .scaler-chip{padding:8px 14px;border-radius:999px;font-size:14px;font-weight:600;
   background:var(--surface-3);border:1px solid var(--line-2);color:var(--muted)}
 .scaler-chip.is-active{background:var(--lingon);border-color:var(--lingon);color:#fff}
+.scaler-presets{display:flex;gap:6px;width:100%;padding-top:8px;border-top:1px solid var(--line)}
+.scaler-preset{flex:1;padding:7px 8px;border-radius:9px;font-size:12px;font-weight:700;background:var(--surface-3);
+  border:1px solid var(--line-2);color:var(--muted)}
+.scale-notice{width:100%;margin-top:3px;padding:9px 10px;border-radius:10px;background:#2c2718;border:1px solid #655423;
+  color:#e6d69d;font-size:12.5px;line-height:1.4}
 
 /* ===== Enhetsomvandlare ===== */
 .conv-tabs{display:flex;gap:8px;margin:6px 0 16px}
@@ -759,7 +768,7 @@ Grädda i 20 minuter."></textarea>
 
       <div class="body">
         <h2>Skapa &amp; redigera recept</h2>
-        <p>Tryck på <strong>＋</strong> (eller "Nytt recept"). Ge namn, välj kategori och fyll i <strong>tre tydliga fält</strong>: Beskrivning, Ingredienser (en per rad) och Gör så här (ett steg per rad). En ingrediensrad som slutar med kolon blir en delrubrik (t.ex. ”Sås:”). Sätt <strong>Portioner</strong> så fungerar portionsräknaren.</p>
+        <p>Tryck på <strong>＋</strong> (eller "Nytt recept"). Ge namn, välj kategori och fyll i <strong>tre tydliga fält</strong>: Beskrivning, Ingredienser (en per rad) och Gör så här (ett steg per rad). En ingrediensrad som slutar med kolon blir en delrubrik (t.ex. ”Sås:”). Sätt <strong>Portioner</strong> så fungerar den smarta portionsräknaren för upp till 30 personer. Vid stora satser lämnas procent och förpackningsstorlekar orörda, medan känsliga ingredienser markeras för kontroll.</p>
 
         <h2>Hämta in recept</h2>
         <p><strong>🌐 Sök recept online</strong> (menyn): sök på webben, välj källa (Alla/Köket.se/ICA/Arla) och tryck på en träff för att importera. <strong>Importera från länk:</strong> klistra in en receptadress — appen letar efter sidans reklamfria ”skriv ut”-version och recept-märkning, och följer Pinterest-pins vidare till källan. <strong>Klistra in recept:</strong> klistra in valfri text (funkar offline). Importer fyller fälten automatiskt och bilden bäddas in.</p>
@@ -1400,9 +1409,9 @@ Grädda i 20 minuter."></textarea>
 
 <!-- scaler.js -->
 <script>
-/* scaler.js — skalar mängder i ingredienstext när man ändrar antal portioner.
-   Hanterar heltal, decimaler (1,5 / 1.5), bråk (½, 1½, 1/2, 1 1/2) och intervall (2–3).
-   Formaterar tillbaka till snygga bråk där det går (0,5 → ½) och komma som decimaltecken. */
+/* scaler.js — smart portionsskalning för vanliga recept och stora satser upp till 30 personer.
+   Bara den inledande huvudmängden skalas. Procenttal, förpackningsstorlekar och andra tal
+   längre fram på raden bevaras. Stora gram/dl/ml-mängder normaliseras till kg/liter. */
 (function (global) {
   'use strict';
 
@@ -1434,20 +1443,60 @@ Grädda i 20 minuter."></textarea>
     return v;
   }
 
-  var QTY = /(\d+\s+\d+\/\d+)|(\d+\/\d+)|(\d+(?:[.,]\d+)?\s*[-–]\s*\d+(?:[.,]\d+)?)|(\d+(?:[.,]\d+)?\s*[½¼¾⅓⅔⅛⅜⅝⅞⅕⅖⅗⅘])|(\d+(?:[.,]\d+)?)|([½¼¾⅓⅔⅛⅜⅝⅞⅕⅖⅗⅘])/g;
+  var TOKEN = '(?:\\d+\\s+\\d+\\/\\d+|\\d+\\/\\d+|\\d+(?:[.,]\\d+)?\\s*[-–]\\s*\\d+(?:[.,]\\d+)?|\\d+(?:[.,]\\d+)?\\s*[½¼¾⅓⅔⅛⅜⅝⅞⅕⅖⅗⅘]|\\d+(?:[.,]\\d+)?|[½¼¾⅓⅔⅛⅜⅝⅞⅕⅖⅗⅘])';
+  var LEADING = new RegExp('^(\\s*(?:(?:ca|cirka|ungefär|drygt|knappt)\\.?\\s+)?)((' + TOKEN + '))(.*)$', 'i');
+  var SENSITIVE = /(?:^|[\s,(])(salt|peppar|chili|cayenne|saffran|jäst|bakpulver|bikarbonat|gelatin|agar|pektin|potatismjöl|majsstärkelse|redning)(?=$|[\s,.)])/i;
+  var COUNTABLE = /(?:^|[\s,(])(ägg|citron(?:er)?|lime|lökar?|vitlöksklyftor?|bananer?|äpplen|päron|avokado|paprikor?|paket|burkar?|flaskor?)(?=$|[\s,.)])/i;
 
-  function scaleText(str, f) {
-    if (!str || !isFinite(f) || f === 1) return str;
-    return str.replace(QTY, function (m) {
-      if (/[-–]/.test(m) && !/\//.test(m)) {           // intervall, t.ex. 2–3
-        var p = m.split(/\s*[-–]\s*/);
-        return fmt(num(p[0]) * f) + '–' + fmt(num(p[1]) * f);
-      }
-      return fmt(val(m) * f);
-    });
+  function scaledToken(token, f) {
+    if (/[-–]/.test(token) && !/\//.test(token)) {
+      var p = token.split(/\s*[-–]\s*/);
+      return { text: fmt(num(p[0]) * f) + '–' + fmt(num(p[1]) * f), value: null };
+    }
+    var value = val(token) * f;
+    return { text: fmt(value), value: value };
   }
 
-  global.Scaler = { scaleText: scaleText, format: fmt };
+  function normalizeUnit(text, value) {
+    if (value == null) return text;
+    var m = text.match(/^([^a-zA-ZÅÄÖåäö]*)(ml|cl|dl|g)\b(.*)$/i);
+    if (!m) return text;
+    var unit = m[2].toLowerCase(), rest = m[3], converted = value, outUnit = unit;
+    if (unit === 'g' && value >= 1000) { converted = value / 1000; outUnit = 'kg'; }
+    else if (unit === 'ml' && value >= 1000) { converted = value / 1000; outUnit = 'l'; }
+    else if (unit === 'cl' && value >= 100) { converted = value / 100; outUnit = 'l'; }
+    else if (unit === 'dl' && value >= 10) { converted = value / 10; outUnit = 'l'; }
+    else return text;
+    return m[1] + outUnit + rest.replace(/^\s*/, ' ');
+  }
+
+  function scaleIngredient(str, f) {
+    var result = { text: str, warnings: [] };
+    if (!str || !isFinite(f) || f === 1) return result;
+    var m = String(str).match(LEADING);
+    if (!m) {
+      if (/\d/.test(str)) result.warnings.push('Kontrollera manuellt: mängden står inte först i raden');
+      return result;
+    }
+    var prefix = m[1], token = m[2], tail = m[4];
+    if (/^\s*%/.test(tail)) { result.warnings.push('Procenttal lämnades oförändrat'); return result; }
+    var scaled = scaledToken(token, f);
+    var normalizedTail = normalizeUnit(tail, scaled.value);
+    var amount = normalizedTail !== tail ? '' : scaled.text;
+    if (normalizedTail !== tail) {
+      var unitMatch = normalizedTail.match(/^([^a-zA-ZÅÄÖåäö]*)(kg|l)\b/i);
+      result.text = prefix + (unitMatch ? fmt((/kg/i.test(unitMatch[2]) ? scaled.value / 1000 : (/^\s*ml\b/i.test(tail) ? scaled.value / 1000 : /^\s*cl\b/i.test(tail) ? scaled.value / 100 : scaled.value / 10))) : scaled.text) + normalizedTail;
+    } else result.text = prefix + amount + tail;
+    if (scaled.value != null && Math.abs(scaled.value - Math.round(scaled.value)) > 0.01 && COUNTABLE.test(tail)) {
+      result.warnings.push('Styckvara behöver praktisk avrundning: ' + result.text.trim());
+    }
+    if (f >= 2 && SENSITIVE.test(tail)) result.warnings.push('Justera försiktigt: ' + tail.trim());
+    return result;
+  }
+
+  function scaleText(str, f) { return scaleIngredient(str, f).text; }
+
+  global.Scaler = { scaleText: scaleText, scaleIngredient: scaleIngredient, format: fmt };
 })(window);
 
 </script>
@@ -3443,7 +3492,7 @@ Grädda i 20 minuter."></textarea>
     drink: 'Drink'
   };
 
-  var APP_VERSION = '1.18.0';   // visas under "Om appen"
+  var APP_VERSION = '1.19.0';   // visas under "Om appen"
 
   var $ = function (id) { return document.getElementById(id); };
   var qa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
@@ -4214,9 +4263,12 @@ Grädda i 20 minuter."></textarea>
       return '<div class="scaler" data-base="' + r.servings + '">' +
         '<span class="scaler-lbl">Portioner</span>' +
         '<button class="scaler-btn" data-s="dec" aria-label="Färre">−</button>' +
-        '<b class="scaler-val" id="scalerVal">' + r.servings + '</b>' +
+        '<input class="scaler-input" id="scalerVal" type="number" min="1" max="30" inputmode="numeric" aria-label="Antal portioner" value="' + r.servings + '">' +
         '<button class="scaler-btn" data-s="inc" aria-label="Fler">＋</button>' +
-        '<button class="scaler-reset" data-s="reset">Återställ</button></div>';
+        '<button class="scaler-reset" data-s="reset">Återställ</button>' +
+        '<div class="scaler-presets"><button class="scaler-preset" data-target="10">10</button>' +
+        '<button class="scaler-preset" data-target="20">20</button><button class="scaler-preset" data-target="30">30 personer</button></div>' +
+        '<div class="scale-notice" id="scaleNotice" hidden></div></div>';
     }
     return '<div class="scaler"><span class="scaler-lbl">Skala</span>' +
       ['0.5', '1', '2', '3'].map(function (x) {
@@ -4225,12 +4277,26 @@ Grädda i 20 minuter."></textarea>
       }).join('') + '</div>';
   }
 
-  function applyScale(f) {
+  function applyScale(f, target) {
+    var warnings = [];
     qa('#reader .body ul li').forEach(function (li) {
       var o = li.getAttribute('data-orig');
       if (o == null) { o = li.textContent; li.setAttribute('data-orig', o); }
-      li.textContent = (f === 1 || !global.Scaler) ? o : Scaler.scaleText(o, f);
+      if (f === 1 || !global.Scaler) li.textContent = o;
+      else {
+        var result = Scaler.scaleIngredient ? Scaler.scaleIngredient(o, f) : { text: Scaler.scaleText(o, f), warnings: [] };
+        li.textContent = result.text;
+        (result.warnings || []).forEach(function (w) { if (warnings.indexOf(w) === -1) warnings.push(w); });
+      }
     });
+    var notice = $('scaleNotice');
+    if (notice) {
+      var notes = [];
+      if (target >= 10) notes.push('Stor sats: kontrollera kärlstorlek, blandning, tillagningstid och smaka av stegvis.');
+      notes = notes.concat(warnings.slice(0, 4));
+      notice.hidden = !notes.length;
+      notice.innerHTML = notes.length ? '⚠ ' + notes.map(escapeHtml).join('<br>• ') : '';
+    }
   }
 
   function setupScaler(r) {
@@ -4239,21 +4305,33 @@ Grädda i 20 minuter."></textarea>
     if (!sc) return;
     var base = parseFloat(sc.getAttribute('data-base')) || 0;
     var n = base;
+    function setTarget(value) {
+      value = Math.round(parseFloat(value));
+      if (!isFinite(value)) value = base;
+      n = Math.max(1, Math.min(30, value));
+      if ($('scalerVal')) $('scalerVal').value = n;
+      applyScale(base ? n / base : 1, n);
+    }
     sc.addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b) return;
       if (b.hasAttribute('data-f')) {
         var f = parseFloat(b.getAttribute('data-f'));
         qa('.scaler-chip', sc).forEach(function (x) { x.classList.toggle('is-active', x === b); });
-        applyScale(f);
+        applyScale(f, 0);
+      } else if (b.hasAttribute('data-target')) {
+        setTarget(b.getAttribute('data-target'));
       } else {
         var s = b.getAttribute('data-s');
-        if (s === 'inc') n = n + 1;
-        else if (s === 'dec') n = Math.max(1, n - 1);
-        else if (s === 'reset') n = base;
-        if ($('scalerVal')) $('scalerVal').textContent = n;
-        applyScale(base ? n / base : 1);
+        if (s === 'inc') setTarget(n + 1);
+        else if (s === 'dec') setTarget(n - 1);
+        else if (s === 'reset') setTarget(base);
       }
     });
+    var input = $('scalerVal');
+    if (input) {
+      input.addEventListener('change', function () { setTarget(input.value); });
+      input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); input.blur(); setTarget(input.value); } });
+    }
   }
 
   /* ---------- Redigeringsvy ---------- */
